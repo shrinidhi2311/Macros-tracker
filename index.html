@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Macros Tracker</title>
-    <!-- Nunito Font for cute clean look -->
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -98,7 +97,6 @@
 
 <div class="container">
     
-    <!-- APP GLOBAL SCROLLER ZONE -->
     <div class="top-status-header">
         <h3 id="time-greeting" style="color:var(--text-main);">Hello! ✨</h3>
         <div class="streak-badge">🔥 <span id="streak-count">0</span> Day Streak</div>
@@ -110,7 +108,6 @@
         <button class="date-btn" onclick="changeDate(1)">▶</button>
     </div>
 
-    <!-- PAGE 1: DIARY / HOME VIEW -->
     <div id="page-home" class="app-page active">
         <div class="card" style="padding-bottom:15px;">
             <div class="rings-wrapper">
@@ -149,15 +146,14 @@
         </div>
     </div>
 
-    <!-- PAGE 2: SEARCH & LOG WORKSPACE -->
     <div id="page-log" class="app-page">
         <div class="card">
             <h3>🍽️ Log Meal Item</h3>
             <button class="action-link" onclick="copyYesterdayLog()">📋 Copy Yesterday's Foods</button>
             
-            <label>Smart Search Database</label>
+            <label>Smart Search Local Database</label>
             <div class="search-container">
-                <input type="text" id="db-search" placeholder="Type letters to filter..." oninput="updateDropdownFilter()">
+                <input type="text" id="db-search" placeholder="Type letters to filter items..." oninput="updateDropdownFilter()">
             </div>
 
             <label>Select Verified Food</label>
@@ -174,7 +170,6 @@
             <button class="secondary" onclick="triggerEditFromSelection()" style="margin-top:8px;">✏️ Edit Item Parameters</button>
         </div>
 
-        <!-- WATER QUICK SNAP LOG -->
         <div class="card grid-2">
             <div>
                 <h3>💧 Water Intake</h3>
@@ -190,7 +185,6 @@
         </div>
     </div>
 
-    <!-- PAGE 3: TRENDS AND VISUAL ANALYTICS -->
     <div id="page-trends" class="app-page">
         <div class="card">
             <h3>⚖️ Log Weight</h3>
@@ -203,23 +197,33 @@
         <div class="card"><h3>📊 Protein & Fiber Progress</h3><div class="chart-container"><canvas id="macroChart"></canvas></div></div>
     </div>
 
-    <!-- PAGE 4: PROFILE MANAGE SETUP -->
     <div id="page-profile" class="app-page">
+        <div class="card" style="border-color: var(--accent-blue);">
+            <h3>🌐 Open Food Facts Global Lookup</h3>
+            <p style="margin: 0 0 12px 0; font-size: 0.8rem; color: var(--text-muted);">Lookup raw nutritional data directly from the internet with zero logins.</p>
+            <div style="display: flex; gap: 8px;">
+                <input type="text" id="net-search-term" placeholder="e.g. curd, almond milk, oats" style="margin-bottom:0;">
+                <button onclick="searchOpenFoodFacts()" style="width: auto; margin: 0; background: var(--accent-blue); padding: 0 16px;">Search 🚀</button>
+            </div>
+            <div id="net-search-status" style="font-size: 0.85rem; color: var(--accent-purple); margin-top: 8px; font-weight: bold;"></div>
+        </div>
+
         <div class="card">
-            <h3>➕ Create Custom Food Definition</h3>
+            <h3 id="food-form-title">➕ Create Custom Food Definition</h3>
             <input type="hidden" id="edit-food-index" value="-1">
             <input type="text" id="nf-name" placeholder="Item name (e.g. Curd)">
             <div class="grid-2">
-                <input type="number" id="nf-serving-size" placeholder="Serving sizing (e.g. 50)">
+                <input type="number" id="nf-serving-size" placeholder="Serving sizing (e.g. 100)" value="100">
                 <select id="nf-unit"><option value="gm">gm</option><option value="ml">ml</option></select>
             </div>
             <div class="grid-2">
-                <input type="number" id="nf-cal" placeholder="Calories">
-                <input type="number" id="nf-carb" placeholder="Carbs (g)">
-                <input type="number" id="nf-protein" placeholder="Protein (g)">
-                <input type="number" id="nf-fat" placeholder="Fat (g)">
+                <div><label>Calories</label><input type="number" id="nf-cal" placeholder="0"></div>
+                <div><label>Carbs (g)</label><input type="number" id="nf-carb" placeholder="0"></div>
+                <div><label>Protein (g)</label><input type="number" id="nf-protein" placeholder="0"></div>
+                <div><label>Fat (g)</label><input type="number" id="nf-fat" placeholder="0"></div>
             </div>
-            <input type="number" id="nf-fiber" placeholder="Fiber (g)">
+            <label>Fiber (g)</label>
+            <input type="number" id="nf-fiber" placeholder="0">
             <button onclick="createOrUpdateFood()" id="food-save-btn">Save to Personal Base ✨</button>
             <button onclick="cancelFoodEdit()" id="food-cancel-btn" class="secondary" style="display:none; margin-top:5px;">Cancel Edit</button>
         </div>
@@ -251,7 +255,6 @@
         </div>
     </div>
 
-    <!-- PERSISTENT MOBILE BOTTOM NAVIGATION COMPONENT -->
     <nav class="bottom-nav">
         <button class="nav-item active" onclick="switchPage('home', this)"><span>🏠</span>Home</button>
         <button class="nav-item" onclick="switchPage('log', this)"><span>🍽️</span>Log Food</button>
@@ -293,11 +296,9 @@
         updateUI();
     }
 
-    // Tab Router Switcher Logic
     function switchPage(pageId, navButton) {
         document.querySelectorAll('.app-page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-        
         document.getElementById(`page-${pageId}`).classList.add('active');
         navButton.classList.add('active');
         window.scrollTo(0,0);
@@ -310,7 +311,44 @@
         updateUI();
     }
 
-    // Dynamic Search & Select Engine filter
+    // NEW ENGINE: LIVE WEB SCRAPER LOOKUP (OPEN FOOD FACTS)
+    async function searchOpenFoodFacts() {
+        const query = document.getElementById('net-search-term').value.trim();
+        const statusDiv = document.getElementById('net-search-status');
+        if(!query) return alert("Type a food item to search first!");
+
+        statusDiv.innerText = "⏳ Accessing network database...";
+        
+        try {
+            let response = await fetch(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1&page_size=1`);
+            let data = await response.json();
+
+            if(!data.products || data.products.length === 0) {
+                statusDiv.innerText = "❌ No global matches found. Create manually below!";
+                return;
+            }
+
+            let product = data.products[0];
+            let nutriments = product.nutriments;
+
+            // Automatically inject network metrics into the form fields below
+            document.getElementById('nf-name').value = product.product_name || query;
+            document.getElementById('nf-serving-size').value = 100; // API parses values normalized to 100g base
+            document.getElementById('nf-unit').value = "gm";
+            
+            document.getElementById('nf-cal').value = Math.round(nutriments['energy-kcal_100g'] || 0);
+            document.getElementById('nf-carb').value = Math.round(nutriments.carbohydrates_100g || 0);
+            document.getElementById('nf-protein').value = Math.round(nutriments.proteins_100g || 0);
+            document.getElementById('nf-fat').value = Math.round(nutriments.fat_100g || 0);
+            document.getElementById('nf-fiber').value = Math.round(nutriments.fiber_100g || 0);
+
+            statusDiv.style.color = "var(--accent-green)";
+            statusDiv.innerText = `✅ Found "${product.product_name}"! Values mapped below per 100g. Tap save below to secure it.`;
+        } catch (error) {
+            statusDiv.innerText = "❌ Network lookup failed. Check phone connection.";
+        }
+    }
+
     function updateDropdownFilter() {
         let query = document.getElementById('db-search').value.toLowerCase();
         let dropdown = document.getElementById('main-food-selector');
@@ -327,7 +365,7 @@
 
     function syncSliderLimits() {
         const idx = document.getElementById('main-food-selector').value;
-        if(idx === "") return;
+        if(idx === "" || !idx) return;
         const food = appData.customFoods[idx];
         const slider = document.getElementById('servings-slider');
         
@@ -350,7 +388,6 @@
         document.getElementById('live-weight-display').value = food.isRecipe ? "Combo Meal" : `${Math.round(food.baseServing * servings)}${food.unit}`;
     }
 
-    // Streak and Context Engine Initialization
     function runTimeAndStreakCalculations() {
         const hour = new Date().getHours();
         let greeting = "Hello! ✨";
@@ -363,13 +400,10 @@
         let todayStr = getTargetDateString();
         let yesterdayStr = getTargetDateString(-1);
 
-        if (appData.lastLoggedDate === yesterdayStr) {
-            // Streak preserved sequentially
-        } else if (appData.lastLoggedDate !== todayStr && appData.lastLoggedDate !== "") {
-            streak = 0; // Streak broken
-        }
+        if (appData.lastLoggedDate === yesterdayStr) { } 
+        else if (appData.lastLoggedDate !== todayStr && appData.lastLoggedDate !== "") { streak = 0; }
+        if (appData.lastLoggedDate === "") streak = 1;
         
-        if (appData.lastLoggedDate === "") streak = 1; // initialized run
         document.getElementById('streak-count').innerText = streak;
         localStorage.setItem('macrosStreakCounter', streak);
     }
@@ -388,7 +422,6 @@
             protein: Math.round(baseFood.protein * servings), fat: Math.round(baseFood.fat * servings), fiber: Math.round(baseFood.fiber * servings)
         });
 
-        // Update tracking logs streak markers
         if (appData.lastLoggedDate !== dayStr) {
             let currentStreak = parseInt(localStorage.getItem('macrosStreakCounter')) || 0;
             localStorage.setItem('macrosStreakCounter', currentStreak + 1);
@@ -401,9 +434,9 @@
 
     function triggerEditFromSelection() {
         const idx = document.getElementById('main-food-selector').value;
-        if (idx === "") return alert("Select a food component to edit first!");
+        if (idx === "") return alert("Select an item from dropdown first!");
         const food = appData.customFoods[idx];
-        if (food.isRecipe) return alert("Recipes cannot be structural values overrides!");
+        if (food.isRecipe) return alert("Recipes cannot be edited!");
 
         document.getElementById('edit-food-index').value = idx;
         document.getElementById('nf-name').value = food.name;
@@ -415,6 +448,7 @@
         document.getElementById('nf-fat').value = food.fat;
         document.getElementById('nf-fiber').value = food.fiber;
 
+        document.getElementById('food-form-title').innerText = `✏️ Editing Custom Entry`;
         document.getElementById('food-save-btn').innerText = "Update Custom Baseline ✨";
         document.getElementById('food-cancel-btn').style.display = "block";
         switchPage('profile', document.querySelectorAll('.nav-item')[3]);
@@ -435,24 +469,19 @@
         if (index === -1) appData.customFoods.push(foodObject);
         else { appData.customFoods[index] = foodObject; cancelFoodEdit(); }
 
+        document.getElementById('net-search-status').innerText = "";
         saveToStorage();
         clearCreationFields();
     }
 
     function cancelFoodEdit() {
         document.getElementById('edit-food-index').value = "-1";
+        document.getElementById('food-form-title').innerText = "➕ Create Custom Food Definition";
         document.getElementById('food-save-btn').innerText = "Save to Personal Base ✨";
         document.getElementById('food-cancel-btn').style.display = "none";
         clearCreationFields();
     }
-    function clearCreationFields() { ['nf-name','nf-serving-size','nf-cal','nf-carb','nf-protein','nf-fat','nf-fiber'].forEach(id=>document.getElementById(id).value=''); }
-
-    function copyYesterdayLog() {
-        let todayStr = getTargetDateString(); let yesterdayStr = getTargetDateString(-1);
-        if (!appData.dailyLogs[yesterdayStr] || appData.dailyLogs[yesterdayStr].foods.length === 0) return alert("Yesterday empty!");
-        appData.dailyLogs[todayStr].foods = [...appData.dailyLogs[yesterdayStr].foods];
-        saveToStorage();
-    }
+    function clearCreationFields() { ['nf-name','nf-cal','nf-carb','nf-protein','nf-fat','nf-fiber'].forEach(id=>document.getElementById(id).value=''); document.getElementById('nf-serving-size').value = "100"; }
 
     function deleteLoggedFood(index) { appData.dailyLogs[getTargetDateString()].foods.splice(index, 1); saveToStorage(); }
     function addWater(amount) { appData.dailyLogs[getTargetDateString()].water += amount; saveToStorage(); }
@@ -480,16 +509,14 @@
         saveToStorage();
     }
 
-    // Liquid Progress SVG Engine Updates calculations
     function updateLiquidCircle(elementId, current, goal) {
         const circle = document.getElementById(elementId);
+        if(!circle) return;
         const radius = circle.r.baseVal.value;
         const circumference = 2 * Math.PI * radius;
         circle.style.strokeDasharray = `${circumference} ${circumference}`;
-        
         let percentage = Math.min(1, current / Math.max(1, goal));
         if(isNaN(percentage)) percentage = 0;
-        
         circle.style.strokeDashoffset = circumference - (percentage * circumference);
     }
 
@@ -531,12 +558,10 @@
         document.getElementById('txt-carb').innerText = `${totals.carbs}g`;
         document.getElementById('txt-protein').innerText = `${totals.protein}g`;
         
-        // Circular Vector updates mapping trigger
         updateLiquidCircle('ring-cal', totals.calories, (appData.goals.calories + log.exerciseCal));
         updateLiquidCircle('ring-carb', totals.carbs, appData.goals.carbs);
         updateLiquidCircle('ring-protein', totals.protein, appData.goals.protein);
 
-        // Linear Fiber Progress parameters logic
         document.getElementById('fiber-fraction').innerText = `${totals.fiber} / ${appData.goals.fiber}g`;
         let fibPct = Math.min(100, (totals.fiber / appData.goals.fiber) * 100);
         document.getElementById('fiber-progress-bar').style.width = `${fibPct}%`;
@@ -544,10 +569,16 @@
         document.getElementById('water-display').innerText = log.water;
         document.getElementById('weight-input').value = log.weight || "";
 
-        // Keep Selection Options state populated
-        if(document.getElementById('main-food-selector').innerHTML === "") {
-            updateDropdownFilter();
-        }
+        // Trigger dynamic select rebuild on content creation
+        let dropdown = document.getElementById('main-food-selector');
+        let currentSelection = dropdown.value;
+        dropdown.innerHTML = '';
+        appData.customFoods.forEach((f, i) => {
+            let metric = f.isRecipe ? "" : ` (${f.baseServing}${f.unit})`;
+            dropdown.innerHTML += `<option value="${i}">${f.name}${metric}</option>`;
+        });
+        if(currentSelection && currentSelection < appData.customFoods.length) dropdown.value = currentSelection;
+        calculateLiveWeight();
 
         let listDiv = document.getElementById('today-food-list');
         listDiv.innerHTML = log.foods.length === 0 ? '<p style="color:var(--text-muted); font-size:0.85rem; font-style:italic; padding:10px 0;">Your diary is empty for today.</p>' : '';
@@ -559,7 +590,6 @@
                 </div>`;
         });
 
-        // Set static configuration values mapping outputs
         ['goal-cal','goal-carb','goal-protein','goal-fat','goal-fiber','prof-age','prof-height','prof-weight','prof-gender','prof-goal'].forEach(id=>{
             let key = id.split('-')[1]; 
             let field = document.getElementById(id);
