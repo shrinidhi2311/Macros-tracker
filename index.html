@@ -3,358 +3,478 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Personal Macro & Fiber Tracker</title>
+    <title>Macros Tracker</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --bg-color: #f4f7f6;
-            --card-bg: #ffffff;
-            --text-color: #333333;
-            --primary: #2ecc71;
-            --fiber-color: #9b59b6;
-            --border-radius: 12px;
+            --bg-dark: #121214;
+            --card-bg: #1e1e24;
+            --accent-green: #2ecc71;
+            --accent-purple: #bb86fc;
+            --accent-blue: #3498db;
+            --text-main: #ffffff;
+            --text-muted: #a0a0a5;
+            --border: #2d2d34;
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            background-color: var(--bg-dark);
+            color: var(--text-main);
             margin: 0;
             padding: 15px;
         }
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
+        .container { max-width: 500px; margin: 0 auto; }
+        h1, h2, h3, h4 { margin: 0; color: var(--text-main); }
+        
+        .header { text-align: center; margin-bottom: 20px; padding-top: 10px; }
+        .date-scroller {
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--card-bg); border-radius: 25px; padding: 5px 15px; margin: 15px 0;
         }
-        h1, h2, h3 { margin-top: 0; color: #2c3e50; }
+        .date-btn { background: none; border: none; color: var(--accent-green); font-size: 1.2rem; cursor: pointer; width: auto; }
+        
         .card {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: var(--border-radius);
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            background: var(--card-bg); padding: 20px; border-radius: 16px;
+            margin-bottom: 15px; border: 1px solid var(--border);
         }
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        
+        /* Stats & Summary */
+        .calorie-hero { text-align: center; margin: 15px 0; }
+        .calorie-big { font-size: 3.2rem; font-weight: 800; color: var(--accent-green); }
+        .calorie-sub { font-size: 0.85rem; color: var(--text-muted); margin-top: 5px; }
         .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; text-align: center; }
-        
-        /* Form styling */
-        label { display: block; margin: 8px 0 4px; font-weight: bold; font-size: 0.9rem; }
+        .macro-box { background: #25252c; padding: 10px 5px; border-radius: 8px; font-size: 0.8rem; color: var(--text-muted); }
+        .macro-box span { display: block; font-size: 1rem; font-weight: bold; color: var(--text-main); margin-top: 4px; }
+        .fiber-highlight { border-bottom: 3px solid var(--accent-purple); }
+
+        /* Dropdowns / Accordions */
+        .accordion {
+            background: var(--card-bg); border: 1px solid var(--border);
+            border-radius: 12px; margin-bottom: 10px; overflow: hidden;
+        }
+        .accordion-header {
+            padding: 15px; font-weight: bold; display: flex; justify-content: space-between;
+            align-items: center; cursor: pointer; user-select: none; background: #1a1a1f;
+        }
+        .accordion-content { padding: 15px; display: none; border-top: 1px solid var(--border); }
+        .accordion.open .accordion-content { display: block; }
+        .accordion-header::after { content: '▼'; font-size: 0.8rem; color: var(--text-muted); }
+        .accordion.open .accordion-header::after { content: '▲'; }
+
+        /* Forms Elements */
+        label { display: block; margin: 10px 0 4px; font-size: 0.85rem; color: var(--text-muted); }
         input, select {
-            width: 100%; padding: 10px; box-sizing: border-box;
-            border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px; font-size: 1rem;
+            width: 100%; padding: 12px; box-sizing: border-box; background: #25252c;
+            border: 1px solid var(--border); border-radius: 8px; color: #fff; font-size: 1rem; margin-bottom: 8px;
         }
+        input:focus, select:focus { border-color: var(--accent-green); outline: none; }
         button {
-            width: 100%; padding: 12px; background: var(--primary); color: white;
-            border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer;
+            width: 100%; padding: 12px; background: var(--accent-green); color: #121214;
+            border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 5px;
         }
-        button.secondary { background: #7f8c8d; margin-top: 5px; }
-        
-        /* Specific elements */
-        .calorie-big { font-size: 2.5rem; font-weight: bold; color: var(--primary); text-align: center; margin: 10px 0; }
-        .macro-box { background: #f8f9fa; padding: 8px; border-radius: 6px; font-size: 0.85rem; }
-        .macro-box span { display: block; font-size: 1.1rem; font-weight: bold; }
-        .fiber-highlight { border-left: 4px solid var(--fiber-color); }
+        button.secondary { background: transparent; border: 1px solid var(--border); color: var(--text-main); }
+        button.delete-btn { background: #e74c3c; color: white; width: auto; padding: 5px 10px; font-size: 0.75rem; margin: 0; }
         
         .food-item {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 10px 0; border-bottom: 1px solid #eee;
+            padding: 12px 0; border-bottom: 1px solid var(--border);
         }
-        .delete-btn { background: #e74c3c; width: auto; padding: 4px 8px; font-size: 0.8rem; }
-        .prediction-box { background: #e8f8f5; border-left: 4px solid #1abc9c; padding: 15px; border-radius: 6px; font-style: italic; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .chart-container { position: relative; margin-top: 15px; height: 180px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    
+    <div class="header">
+        <h1>Macros Tracker</h1>
+        <div class="date-scroller">
+            <button class="date-btn" onclick="changeDate(-1)">◀</button>
+            <h3 id="display-date">Today</h3>
+            <button class="date-btn" onclick="changeDate(1)">▶</button>
+        </div>
+    </div>
+
     <div class="card">
-        <h2>Daily Overview (<span id="current-date"></span>)</h2>
-        <div class="calorie-big" id="cal-remaining">0</div>
-        <div style="text-align:center; margin-bottom: 15px; font-size: 0.9rem; color: #7f8c8d;">Calories Remaining</div>
-        
+        <div class="calorie-hero">
+            <div class="calorie-big" id="cal-remaining">0</div>
+            <div class="calorie-sub" id="cal-breakdown">Goal: 0 | Food: 0 | Burned: 0</div>
+        </div>
         <div class="grid-4">
-            <div class="macro-box">Carbs<span id="carb-status">0 / 0g</span></div>
-            <div class="macro-box">Protein<span id="protein-status">0 / 0g</span></div>
-            <div class="macro-box">Fat<span id="fat-status">0 / 0g</span></div>
-            <div class="macro-box fiber-highlight">Fiber<span id="fiber-status">0 / 0g</span></div>
-        </div>
-    </div>
-
-    <div class="card grid-2">
-        <div>
-            <h3>💧 Water</h3>
-            <div style="font-size: 1.2rem; margin-bottom:8px;"><span id="water-display">0</span> ml</div>
-            <button onclick="addWater(250)">+250ml</button>
-        </div>
-        <div>
-            <h3>⚖️ Weight</h3>
-            <input type="number" id="weight-input" step="0.1" placeholder="kg" onchange="saveWeight(this.value)">
+            <div class="macro-box">Carbs<span id="carb-status">0/0g</span></div>
+            <div class="macro-box">Protein<span id="protein-status">0/0g</span></div>
+            <div class="macro-box">Fat<span id="fat-status">0/0g</span></div>
+            <div class="macro-box fiber-highlight">Fiber<span id="fiber-status">0/0g</span></div>
         </div>
     </div>
 
     <div class="card">
-        <h3>🍽️ Log Food</h3>
-        <label>Select Saved Food</label>
+        <h3>🍽️ Quick Log Food</h3>
+        <label>Select Food Base</label>
         <select id="food-selector"></select>
-        <label>Servings</label>
-        <input type="number" id="food-servings" value="1" step="0.1">
-        <button onclick="logFood()">Eat Food</button>
+        <div class="grid-2">
+            <div>
+                <label>Num of Servings</label>
+                <input type="number" id="food-servings" value="1" step="0.1" oninput="calculateLiveWeight()">
+            </div>
+            <div>
+                <label>Total Calculated</label>
+                <input type="text" id="live-weight-display" value="0g" disabled style="opacity: 0.6; text-align: center;">
+            </div>
+        </div>
+        <button onclick="logFood()">Log to Diary</button>
         
-        <h4 style="margin-top:20px; margin-bottom:10px;">Today's Log:</h4>
+        <h4 style="margin-top:20px; margin-bottom:5px;">Entries for this day:</h4>
         <div id="today-food-list"></div>
     </div>
 
-    <div class="card">
-        <h3>🔮 5-Week Projection</h3>
-        <div class="prediction-box" id="prediction-text">
-            Log your weight and some food to see your 5-week projection.
+    <div class="accordion">
+        <div class="accordion-header" onclick="toggleAccordion(this)">💧 Water Log</div>
+        <div class="accordion-content">
+            <div style="font-size: 1.3rem; margin-bottom:10px; text-align: center;"><span id="water-display">0</span> ml</div>
+            <div class="grid-2">
+                <button onclick="addWater(250)">+250ml</button>
+                <button onclick="addWater(500)" style="background: var(--accent-blue)">+500ml</button>
+            </div>
         </div>
     </div>
 
-    <div class="card">
-        <h3>➕ Create Custom Food</h3>
-        <input type="text" id="nf-name" placeholder="Food Name">
-        <div class="grid-2">
-            <input type="number" id="nf-cal" placeholder="Calories">
-            <input type="number" id="nf-carb" placeholder="Carbs (g)">
-            <input type="number" id="nf-protein" placeholder="Protein (g)">
-            <input type="number" id="nf-fat" placeholder="Fat (g)">
+    <div class="accordion">
+        <div class="accordion-header" onclick="toggleAccordion(this)">🚶 Walking Exercise</div>
+        <div class="accordion-content">
+            <p style="margin-top:0; font-size:0.85rem; color:var(--text-muted);">Walking adds back calories dynamically (Calculates approx. 4.5 cal/min or 65 cal/km).</p>
+            <div class="grid-2">
+                <div>
+                    <label>Duration (Minutes)</label>
+                    <input type="number" id="exe-mins" placeholder="e.g. 15" oninput="document.getElementById('exe-km').value=''">
+                </div>
+                <div>
+                    <label>Distance (KM)</label>
+                    <input type="number" id="exe-km" placeholder="e.g. 1.2" oninput="document.getElementById('exe-mins').value=''">
+                </div>
+            </div>
+            <button onclick="logExercise()" style="background:var(--accent-blue);">Add Burned Calories</button>
         </div>
-        <input type="number" id="nf-fiber" placeholder="Fiber (g)">
-        <button onclick="createCustomFood()">Save to My Database</button>
     </div>
 
-    <div class="card">
-        <h3>⚙️ Setup My Profile & Goals</h3>
-        <div class="grid-2">
-            <input type="number" id="prof-age" placeholder="Age">
-            <select id="prof-gender">
-                <option value="female">Female</option>
-                <option value="male">Male</option>
+    <div class="accordion">
+        <div class="accordion-header" onclick="toggleAccordion(this)">⚖️ Daily Weight</div>
+        <div class="accordion-content">
+            <label>Log Daily Weight (kg)</label>
+            <input type="number" id="weight-input" step="0.1" placeholder="e.g. 72.5">
+            <button onclick="saveWeight()">Save Weight</button>
+        </div>
+    </div>
+
+    <div class="accordion">
+        <div class="accordion-header" onclick="toggleAccordion(this)">➕ Custom Food Creation</div>
+        <div class="accordion-content">
+            <input type="text" id="nf-name" placeholder="Food Name (e.g. Curd)">
+            <div class="grid-2">
+                <input type="number" id="nf-serving-size" placeholder="Base Serving Size (e.g. 50)">
+                <select id="nf-unit"><option value="gm">grams (gm)</option><option value="ml">ml</option></select>
+            </div>
+            <div class="grid-2">
+                <input type="number" id="nf-cal" placeholder="Calories">
+                <input type="number" id="nf-carb" placeholder="Carbs (g)">
+                <input type="number" id="nf-protein" placeholder="Protein (g)">
+                <input type="number" id="nf-fat" placeholder="Fat (g)">
+            </div>
+            <input type="number" id="nf-fiber" placeholder="Fiber (g)">
+            <button onclick="createCustomFood()">Save to My Database</button>
+        </div>
+    </div>
+
+    <div class="accordion">
+        <div class="accordion-header" onclick="toggleAccordion(this)">⚙️ Target Parameters & Profile</div>
+        <div class="accordion-content">
+            <div class="grid-2">
+                <input type="number" id="prof-age" placeholder="Age">
+                <select id="prof-gender"><option value="female">Female</option><option value="male">Male</option></select>
+                <input type="number" id="prof-height" placeholder="Height (cm)">
+                <input type="number" id="prof-weight" placeholder="Base Weight (kg)">
+            </div>
+            <label>Goal Structure</label>
+            <select id="prof-goal">
+                <option value="-500">Lose Weight (-500 cal)</option>
+                <option value="0">Maintain Weight</option>
+                <option value="500">Gain Muscle (+500 cal)</option>
             </select>
-            <input type="number" id="prof-height" placeholder="Height (cm)">
-            <input type="number" id="prof-weight" placeholder="Current Weight (kg)">
+            <button onclick="calculateBMRGoals()">Auto Calculate Macro Splits</button>
+            <hr style="border:0; border-top:1px solid var(--border); margin:15px 0;">
+            <div class="grid-2">
+                <div><label>Calorie Goal</label><input type="number" id="goal-cal"></div>
+                <div><label>Carb Goal (g)</label><input type="number" id="goal-carb"></div>
+                <div><label>Protein Goal (g)</label><input type="number" id="goal-protein"></div>
+                <div><label>Fat Goal (g)</label><input type="number" id="goal-fat"></div>
+            </div>
+            <label style="color:var(--accent-purple)">Custom Fiber Goal (g)</label>
+            <input type="number" id="goal-fiber">
+            <button class="secondary" onclick="saveManualGoals()">Override & Save Goals</button>
         </div>
-        <label>Goal</label>
-        <select id="prof-goal">
-            <option value="-500">Lose Weight (-500 cal)</option>
-            <option value="0">Maintain Weight</option>
-            <option value="500">Gain Muscle (+500 cal)</option>
-        </select>
-        <button onclick="calculateBMRGoals()">Auto-Calculate Targets</button>
-        
-        <h4 style="margin-top:15px; margin-bottom:5px;">Fine-Tune Gram Targets:</h4>
-        <div class="grid-2">
-            <div><label>Calorie Goal</label><input type="number" id="goal-cal"></div>
-            <div><label>Carb Goal (g)</label><input type="number" id="goal-carb"></div>
-            <div><label>Protein Goal (g)</label><input type="number" id="goal-protein"></div>
-            <div><label>Fat Goal (g)</label><input type="number" id="goal-fat"></div>
-        </div>
-        <label style="color:var(--fiber-color)">Custom Fiber Goal (g)</label>
-        <input type="number" id="goal-fiber">
-        <button class="secondary" onclick="saveManualGoals()">Save Goals Directly</button>
+    </div>
+
+    <div class="card">
+        <h3>📉 Weight Tracking Trend</h3>
+        <div class="chart-container"><canvas id="weightChart"></canvas></div>
+    </div>
+    <div class="card">
+        <h3>📊 Protein & Fiber Progress</h3>
+        <div class="chart-container"><canvas id="macroChart"></canvas></div>
     </div>
 
 </div>
 
 <script>
-    // App State Management
-    const todayStr = new Date().toISOString().split('T')[0];
-    document.getElementById('current-date').innerText = todayStr;
+    // System Time Engine Setup
+    let currentDateIndex = 0; 
+    function getTargetDateString() {
+        let d = new Date();
+        d.setDate(d.getDate() + currentDateIndex);
+        return d.toISOString().split('T')[0];
+    }
 
-    let appData = JSON.parse(localStorage.getItem('myFitnessCloneData')) || {
-        customFoods: [{ name: "Example Egg", calories: 70, carbs: 0, protein: 6, fat: 5, fiber: 0 }],
+    // Storage Structures
+    let appData = JSON.parse(localStorage.getItem('macrosTrackerData')) || {
+        customFoods: [{ name: "Curd", baseServing: 50, unit: "gm", calories: 50, carbs: 2, protein: 4, fat: 2, fiber: 0 }],
         dailyLogs: {},
-        goals: { calories: 2000, carbs: 200, protein: 140, fat: 65, fiber: 30 },
+        goals: { calories: 1800, carbs: 150, protein: 120, fat: 55, fiber: 25 },
         profile: { age: 25, gender: 'female', height: 165, weight: 70, goal: -500 }
     };
 
-    // Ensure today's layout exists
-    if (!appData.dailyLogs[todayStr]) {
-        appData.dailyLogs[todayStr] = { foods: [], water: 0, weight: appData.profile.weight || 70 };
+    let weightChartInstance = null;
+    let macroChartInstance = null;
+
+    function initCurrentDay() {
+        let dayStr = getTargetDateString();
+        if (!appData.dailyLogs[dayStr]) {
+            appData.dailyLogs[dayStr] = { foods: [], water: 0, weight: appData.profile.weight || 70, exerciseCal: 0 };
+        }
     }
 
     function saveToStorage() {
-        localStorage.setItem('myFitnessCloneData', JSON.stringify(appData));
+        localStorage.setItem('macrosTrackerData', JSON.stringify(appData));
         updateUI();
     }
 
-    // Goal Calculations
-    function calculateBMRGoals() {
-        const age = parseFloat(document.getElementById('prof-age').value) || 25;
-        const gender = document.getElementById('prof-gender').value;
-        const height = parseFloat(document.getElementById('prof-height').value) || 165;
-        const weight = parseFloat(document.getElementById('prof-weight').value) || 70;
-        const goalModifier = parseFloat(document.getElementById('prof-goal').value);
-
-        // Mifflin-St Jeor Equation
-        let bmr = (10 * weight) + (6.25 * height) - (5 * age);
-        bmr = (gender === 'male') ? bmr + 5 : bmr - 161;
-        
-        let tdee = bmr * 1.2; // Assuming sedentary base line factor
-        let targetCalories = Math.round(tdee + goalModifier);
-
-        // Macro Splits (Rough safe baseline splits: 40% Carb, 30% Protein, 30% Fat)
-        appData.goals.calories = targetCalories;
-        appData.goals.carbs = Math.round((targetCalories * 0.40) / 4);
-        appData.goals.protein = Math.round((targetCalories * 0.30) / 4);
-        appData.goals.fat = Math.round((targetCalories * 0.30) / 9);
-        appData.goals.fiber = (gender === 'male') ? 38 : 25; // Standard health recommendations
-
-        appData.profile = { age, gender, height, weight, goal: goalModifier };
-        appData.dailyLogs[todayStr].weight = weight;
-        
-        saveToStorage();
+    function toggleAccordion(element) {
+        element.parentElement.classList.toggle('open');
     }
 
-    function saveManualGoals() {
-        appData.goals.calories = parseInt(document.getElementById('goal-cal').value);
-        appData.goals.carbs = parseInt(document.getElementById('goal-carb').value);
-        appData.goals.protein = parseInt(document.getElementById('goal-protein').value);
-        appData.goals.fat = parseInt(document.getElementById('goal-fat').value);
-        appData.goals.fiber = parseInt(document.getElementById('goal-fiber').value);
-        saveToStorage();
+    function changeDate(direction) {
+        currentDateIndex += direction;
+        let dayStr = getTargetDateString();
+        document.getElementById('display-date').innerText = currentDateIndex === 0 ? "Today" : currentDateIndex === -1 ? "Yesterday" : dayStr;
+        initCurrentDay();
+        updateUI();
     }
 
-    // Food Features
+    function calculateLiveWeight() {
+        const selector = document.getElementById('food-selector');
+        const servings = parseFloat(document.getElementById('food-servings').value) || 0;
+        if(selector.value === "") {
+            document.getElementById('live-weight-display').value = "0g";
+            return;
+        }
+        const food = appData.customFoods[selector.value];
+        document.getElementById('live-weight-display').value = `${Math.round(food.baseServing * servings)}${food.unit}`;
+    }
+
     function createCustomFood() {
-        const name = document.getElementById('nf-name').value || "Unnamed Food";
+        const name = document.getElementById('nf-name').value || "Custom Food";
+        const baseServing = parseFloat(document.getElementById('nf-serving-size').value) || 100;
+        const unit = document.getElementById('nf-unit').value;
         const calories = parseInt(document.getElementById('nf-cal').value) || 0;
         const carbs = parseInt(document.getElementById('nf-carb').value) || 0;
         const protein = parseInt(document.getElementById('nf-protein').value) || 0;
         const fat = parseInt(document.getElementById('nf-fat').value) || 0;
         const fiber = parseInt(document.getElementById('nf-fiber').value) || 0;
 
-        appData.customFoods.push({ name, calories, carbs, protein, fat, fiber });
-        
-        // Clear fields
-        document.getElementById('nf-name').value = '';
-        document.getElementById('nf-cal').value = '';
-        document.getElementById('nf-carb').value = '';
-        document.getElementById('nf-protein').value = '';
-        document.getElementById('nf-fat').value = '';
-        document.getElementById('nf-fiber').value = '';
-        
+        appData.customFoods.push({ name, baseServing, unit, calories, carbs, protein, fat, fiber });
         saveToStorage();
+        
+        // Reset form fields
+        ['nf-name','nf-serving-size','nf-cal','nf-carb','nf-protein','nf-fat','nf-fiber'].forEach(id=>document.getElementById(id).value='');
     }
 
     function logFood() {
-        const selector = document.getElementById('food-selector');
-        const index = selector.value;
+        let dayStr = getTargetDateString();
+        const idx = document.getElementById('food-selector').value;
         const servings = parseFloat(document.getElementById('food-servings').value) || 1;
+        if(idx === "") return;
 
-        if(index === "") return;
-        const baseFood = appData.customFoods[index];
-
-        appData.dailyLogs[todayStr].foods.push({
-            name: baseFood.name,
-            calories: Math.round(baseFood.calories * servings),
-            carbs: Math.round(baseFood.carbs * servings),
-            protein: Math.round(baseFood.protein * servings),
-            fat: Math.round(baseFood.fat * servings),
-            fiber: Math.round(baseFood.fiber * servings),
-            servings: servings
+        const base = appData.customFoods[idx];
+        appData.dailyLogs[dayStr].foods.push({
+            name: base.name,
+            servings: servings,
+            weightCalculated: Math.round(base.baseServing * servings) + base.unit,
+            calories: Math.round(base.calories * servings),
+            carbs: Math.round(base.carbs * servings),
+            protein: Math.round(base.protein * servings),
+            fat: Math.round(base.fat * servings),
+            fiber: Math.round(base.fiber * servings)
         });
-
         saveToStorage();
     }
 
     function deleteLoggedFood(index) {
-        appData.dailyLogs[todayStr].foods.splice(index, 1);
+        let dayStr = getTargetDateString();
+        appData.dailyLogs[dayStr].foods.splice(index, 1);
         saveToStorage();
     }
 
     function addWater(amount) {
-        appData.dailyLogs[todayStr].water += amount;
+        let dayStr = getTargetDateString();
+        appData.dailyLogs[dayStr].water += amount;
         saveToStorage();
     }
 
-    function saveWeight(val) {
-        appData.dailyLogs[todayStr].weight = parseFloat(val);
-        appData.profile.weight = parseFloat(val);
+    function logExercise() {
+        let dayStr = getTargetDateString();
+        const mins = parseFloat(document.getElementById('exe-mins').value) || 0;
+        const km = parseFloat(document.getElementById('exe-km').value) || 0;
+        let burned = 0;
+
+        if (mins > 0) burned = mins * 4.5; // Walk estimate baseline
+        else if (km > 0) burned = km * 65;
+
+        appData.dailyLogs[dayStr].exerciseCal += Math.round(burned);
+        document.getElementById('exe-mins').value = '';
+        document.getElementById('exe-km').value = '';
         saveToStorage();
     }
 
-    // UI Engine update
+    function saveWeight() {
+        let dayStr = getTargetDateString();
+        const w = parseFloat(document.getElementById('weight-input').value);
+        if(w) {
+            appData.dailyLogs[dayStr].weight = w;
+            appData.profile.weight = w;
+            saveToStorage();
+        }
+    }
+
+    function calculateBMRGoals() {
+        const age = parseFloat(document.getElementById('prof-age').value) || 25;
+        const gender = document.getElementById('prof-gender').value;
+        const height = parseFloat(document.getElementById('prof-height').value) || 165;
+        const weight = parseFloat(document.getElementById('prof-weight').value) || 70;
+        const modifier = parseFloat(document.getElementById('prof-goal').value);
+
+        let bmr = (10 * weight) + (6.25 * height) - (5 * age);
+        bmr = (gender === 'male') ? bmr + 5 : bmr - 161;
+        let tdee = Math.round((bmr * 1.2) + modifier);
+
+        appData.goals = { calories: tdee, carbs: Math.round((tdee*0.4)/4), protein: Math.round((tdee*0.3)/4), fat: Math.round((tdee*0.3)/9), fiber: (gender==='male'?35:25) };
+        appData.profile = { age, gender, height, weight, goal: modifier };
+        saveToStorage();
+    }
+
+    function saveManualGoals() {
+        appData.goals.calories = parseInt(document.getElementById('goal-cal').value) || 2000;
+        appData.goals.carbs = parseInt(document.getElementById('goal-carb').value) || 150;
+        appData.goals.protein = parseInt(document.getElementById('goal-protein').value) || 120;
+        appData.goals.fat = parseInt(document.getElementById('goal-fat').value) || 50;
+        appData.goals.fiber = parseInt(document.getElementById('goal-fiber').value) || 25;
+        saveToStorage();
+    }
+
+    function renderCharts() {
+        const sortedDates = Object.keys(appData.dailyLogs).sort().slice(-7); // Last 7 metrics data days
+        const weightData = sortedDates.map(d => appData.dailyLogs[d].weight || null);
+        const proteinData = sortedDates.map(d => appData.dailyLogs[d].foods.reduce((acc,f)=>acc+f.protein, 0));
+        const fiberData = sortedDates.map(d => appData.dailyLogs[d].foods.reduce((acc,f)=>acc+f.fiber, 0));
+
+        if (weightChartInstance) weightChartInstance.destroy();
+        if (macroChartInstance) macroChartInstance.destroy();
+
+        // Dark Chart styling baselines
+        Chart.defaults.color = '#a0a0a5';
+        Chart.defaults.borderColor = '#2d2d34';
+
+        weightChartInstance = new Chart(document.getElementById('weightChart'), {
+            type: 'line',
+            data: { labels: sortedDates, datasets: [{ label: 'Weight (kg)', data: weightData, borderColor: '#2ecc71', tension: 0.2, fill: false }] },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        macroChartInstance = new Chart(document.getElementById('macroChart'), {
+            type: 'bar',
+            data: {
+                labels: sortedDates,
+                datasets: [
+                    { label: 'Protein (g)', data: proteinData, backgroundColor: '#3498db' },
+                    { label: 'Fiber (g)', data: fiberData, backgroundColor: '#bb86fc' }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: false }, y: { stacked: false } } }
+        });
+    }
+
     function updateUI() {
-        const currentLog = appData.dailyLogs[todayStr];
-        
-        // Totals mapping
+        let dayStr = getTargetDateString();
+        let log = appData.dailyLogs[dayStr];
+
         let totals = { calories: 0, carbs: 0, protein: 0, fat: 0, fiber: 0 };
-        currentLog.foods.forEach(f => {
-            totals.calories += f.calories;
-            totals.carbs += f.carbs;
-            totals.protein += f.protein;
-            totals.fat += f.fat;
-            totals.fiber += f.fiber;
+        log.foods.forEach(f => {
+            totals.calories += f.calories; totals.carbs += f.carbs; totals.protein += f.protein; totals.fat += f.fat; totals.fiber += f.fiber;
         });
 
-        // Remainder calculations
-        document.getElementById('cal-remaining').innerText = appData.goals.calories - totals.calories;
-        document.getElementById('carb-status').innerText = `${totals.carbs} / ${appData.goals.carbs}g`;
-        document.getElementById('protein-status').innerText = `${totals.protein} / ${appData.goals.protein}g`;
-        document.getElementById('fat-status').innerText = `${totals.fat} / ${appData.goals.fat}g`;
-        document.getElementById('fiber-status').innerText = `${totals.fiber} / ${appData.goals.fiber}g`;
-        
-        document.getElementById('water-display').innerText = currentLog.water;
-        document.getElementById('weight-input').value = currentLog.weight;
+        // Compute targets factoring walking adjustments directly
+        let netRemaining = (appData.goals.calories + log.exerciseCal) - totals.calories;
+        document.getElementById('cal-remaining').innerText = netRemaining;
+        document.getElementById('cal-breakdown').innerText = `Goal: ${appData.goals.calories} | Eaten: ${totals.calories} | Exercise: +${log.exerciseCal} cal`;
 
-        // Render food database selector
-        const selector = document.getElementById('food-selector');
-        selector.innerHTML = '<option value="">-- Choose Food --</option>';
-        appData.customFoods.forEach((food, index) => {
-            selector.innerHTML += `<option value="${index}">${food.name} (${food.calories} cal)</option>`;
+        document.getElementById('carb-status').innerText = `${totals.carbs}/${appData.goals.carbs}g`;
+        document.getElementById('protein-status').innerText = `${totals.protein}/${appData.goals.protein}g`;
+        document.getElementById('fat-status').innerText = `${totals.fat}/${appData.goals.fat}g`;
+        document.getElementById('fiber-status').innerText = `${totals.fiber}/${appData.goals.fiber}g`;
+
+        document.getElementById('water-display').innerText = log.water;
+        document.getElementById('weight-input').value = log.weight || "";
+
+        // Selection Engine Sync
+        let selector = document.getElementById('food-selector');
+        selector.innerHTML = '<option value="">-- Select Food --</option>';
+        appData.customFoods.forEach((f, i) => {
+            selector.innerHTML += `<option value="${i}">${f.name} (${f.baseServing}${f.unit})</option>`;
         });
+        calculateLiveWeight();
 
-        // Render today's eaten list
-        const listDiv = document.getElementById('today-food-list');
-        listDiv.innerHTML = '';
-        currentLog.foods.forEach((f, idx) => {
+        // Print today's logged list layout
+        let listDiv = document.getElementById('today-food-list');
+        listDiv.innerHTML = log.foods.length === 0 ? '<p style="color:var(--text-muted); font-size:0.9rem;">No meals logged for this day yet.</p>' : '';
+        log.foods.forEach((f, idx) => {
             listDiv.innerHTML += `
                 <div class="food-item">
                     <div>
-                        <strong>${f.name}</strong> (${f.servings} serv)<br>
-                        <small>C: ${f.carbs}g | P: ${f.protein}g | F: ${f.fat}g | Fiber: ${f.fiber}g</small>
+                        <strong>${f.name}</strong> (${f.weightCalculated})<br>
+                        <small style="color:var(--text-muted)">P: ${f.protein}g | Fib: ${f.fiber}g | C: ${f.carbs}g | F: ${f.fat}g</small>
                     </div>
-                    <div style="text-align:right;">
-                        <div>${f.calories} cal</div>
-                        <button class="delete-btn" onclick="deleteLoggedFood(${idx})">X</button>
+                    <div style="text-align:right; display:flex; align-items:center; gap:10px;">
+                        <span>${f.calories} cal</span>
+                        <button class="delete-btn" onclick="deleteLoggedFood(${idx})">×</button>
                     </div>
                 </div>`;
         });
 
-        // Render inputs for settings values
+        // Set static control settings inputs
         document.getElementById('goal-cal').value = appData.goals.calories;
         document.getElementById('goal-carb').value = appData.goals.carbs;
         document.getElementById('goal-protein').value = appData.goals.protein;
         document.getElementById('goal-fat').value = appData.goals.fat;
         document.getElementById('goal-fiber').value = appData.goals.fiber;
-        
         document.getElementById('prof-age').value = appData.profile.age;
         document.getElementById('prof-height').value = appData.profile.height;
         document.getElementById('prof-weight').value = appData.profile.weight;
         document.getElementById('prof-gender').value = appData.profile.gender;
         document.getElementById('prof-goal').value = appData.profile.goal;
 
-        // Calculate 5 week estimation
-        const currentWeight = currentLog.weight || appData.profile.weight;
-        // Simple prediction: Deficit or surplus vs our target baseline setting multiplied out
-        const targetCalIntake = appData.goals.calories;
-        const currentCalIntake = totals.calories;
-        
-        // Use standard daily macro calculation projection
-        let dailyDeficitOrSurplus = targetCalIntake - currentCalIntake;
-        // factor in what the user settings wanted as a modifier
-        let estimatedDeficit = appData.profile.goal; 
-        
-        if (currentCalIntake > 0) {
-            let projectedWeightLossLbs = (estimatedDeficit * 35) / 3500; 
-            let finalProjectedWeight = (currentWeight + (projectedWeightLossLbs * 0.453592)).toFixed(1); // outputting in kg
-            document.getElementById('prediction-text').innerText = `If you eat every day like today, in 5 weeks you are projected to weigh approximately ${finalProjectedWeight} kg.`;
-        } else {
-            document.getElementById('prediction-text').innerText = "Log your foods today to calculate a 5-week tracking prediction.";
-        }
+        renderCharts();
     }
 
-    // Init run
+    // Start-up triggers
+    initCurrentDay();
     updateUI();
 </script>
 </body>
