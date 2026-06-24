@@ -4,76 +4,95 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Macros Tracker</title>
+    <!-- ChartJS for rendering charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --bg-dark: #121214;
-            --card-bg: #1e1e24;
-            --accent-green: #2ecc71;
-            --accent-purple: #bb86fc;
-            --accent-blue: #3498db;
-            --text-main: #ffffff;
-            --text-muted: #a0a0a5;
-            --border: #2d2d34;
+            --bg-dark: #16151d;
+            --card-bg: #211f2d;
+            --accent-green: #38ef7d;
+            --accent-purple: #e0aaff;
+            --accent-pink: #ff758f;
+            --accent-blue: #70d6ff;
+            --text-main: #f3f0ff;
+            --text-muted: #9d9aa7;
+            --border: #2f2b43;
+            --radius-main: 20px;
         }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-dark);
             color: var(--text-main);
             margin: 0;
             padding: 15px;
         }
         .container { max-width: 500px; margin: 0 auto; }
-        h1, h2, h3, h4 { margin: 0; color: var(--text-main); }
+        h1, h2, h3, h4 { margin: 0; color: var(--text-main); font-weight: 800; }
         
         .header { text-align: center; margin-bottom: 20px; padding-top: 10px; }
+        .header h1 { font-size: 2rem; background: linear-gradient(45deg, var(--accent-green), var(--accent-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
         .date-scroller {
             display: flex; justify-content: space-between; align-items: center;
-            background: var(--card-bg); border-radius: 25px; padding: 5px 15px; margin: 15px 0;
+            background: var(--card-bg); border-radius: 30px; padding: 6px 18px; margin: 15px 0;
+            border: 2px solid var(--border);
         }
-        .date-btn { background: none; border: none; color: var(--accent-green); font-size: 1.2rem; cursor: pointer; width: auto; }
+        .date-btn { background: none; border: none; color: var(--accent-green); font-size: 1.4rem; cursor: pointer; width: auto; transition: transform 0.1s ease; }
+        .date-btn:active { transform: scale(1.3); }
         
         .card {
-            background: var(--card-bg); padding: 20px; border-radius: 16px;
-            margin-bottom: 15px; border: 1px solid var(--border);
+            background: var(--card-bg); padding: 20px; border-radius: var(--radius-main);
+            margin-bottom: 15px; border: 2px solid var(--border);
+            box-shadow: 0 8px 0px var(--bg-dark);
         }
         
-        /* Stats & Summary */
-        .calorie-hero { text-align: center; margin: 15px 0; }
-        .calorie-big { font-size: 3.2rem; font-weight: 800; color: var(--accent-green); }
-        .calorie-sub { font-size: 0.85rem; color: var(--text-muted); margin-top: 5px; }
-        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; text-align: center; }
-        .macro-box { background: #25252c; padding: 10px 5px; border-radius: 8px; font-size: 0.8rem; color: var(--text-muted); }
-        .macro-box span { display: block; font-size: 1rem; font-weight: bold; color: var(--text-main); margin-top: 4px; }
-        .fiber-highlight { border-bottom: 3px solid var(--accent-purple); }
+        /* Stats Dashboard */
+        .calorie-hero { text-align: center; margin: 10px 0 20px 0; }
+        .calorie-big { font-size: 3.5rem; font-weight: 900; color: var(--accent-green); text-shadow: 0 0 10px rgba(56, 239, 125, 0.2); }
+        .calorie-sub { font-size: 0.9rem; color: var(--text-muted); font-weight: bold; }
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; text-align: center; }
+        .macro-box { background: #1a1824; padding: 12px 5px; border-radius: 14px; font-size: 0.75rem; color: var(--text-muted); font-weight: bold; border: 1px solid var(--border); }
+        .macro-box span { display: block; font-size: 1rem; font-weight: 800; color: var(--text-main); margin-top: 5px; }
+        .fiber-highlight { border: 1.5px solid var(--accent-purple); box-shadow: 0 0 8px rgba(224, 170, 255, 0.15); }
 
         /* Dropdowns / Accordions */
         .accordion {
-            background: var(--card-bg); border: 1px solid var(--border);
-            border-radius: 12px; margin-bottom: 10px; overflow: hidden;
+            background: var(--card-bg); border: 2px solid var(--border);
+            border-radius: var(--radius-main); margin-bottom: 12px; overflow: hidden;
         }
         .accordion-header {
-            padding: 15px; font-weight: bold; display: flex; justify-content: space-between;
-            align-items: center; cursor: pointer; user-select: none; background: #1a1a1f;
+            padding: 16px; font-weight: 800; display: flex; justify-content: space-between;
+            align-items: center; cursor: pointer; user-select: none; background: #1b1926;
         }
-        .accordion-content { padding: 15px; display: none; border-top: 1px solid var(--border); }
+        .accordion-content { padding: 18px; display: none; background: var(--card-bg); }
         .accordion.open .accordion-content { display: block; }
-        .accordion-header::after { content: '▼'; font-size: 0.8rem; color: var(--text-muted); }
-        .accordion.open .accordion-header::after { content: '▲'; }
+        .accordion-header::after { content: '✨ ▼'; font-size: 0.75rem; color: var(--accent-purple); }
+        .accordion.open .accordion-header::after { content: '✨ ▲'; }
 
-        /* Forms Elements */
-        label { display: block; margin: 10px 0 4px; font-size: 0.85rem; color: var(--text-muted); }
+        /* Form styling */
+        label { display: block; margin: 10px 0 5px; font-size: 0.85rem; color: var(--text-muted); font-weight: bold; }
         input, select {
-            width: 100%; padding: 12px; box-sizing: border-box; background: #25252c;
-            border: 1px solid var(--border); border-radius: 8px; color: #fff; font-size: 1rem; margin-bottom: 8px;
+            width: 100%; padding: 12px; box-sizing: border-box; background: #1a1824;
+            border: 2px solid var(--border); border-radius: 12px; color: #fff; font-size: 1rem; margin-bottom: 8px;
+            font-family: inherit;
         }
-        input:focus, select:focus { border-color: var(--accent-green); outline: none; }
+        input:focus, select:focus { border-color: var(--accent-blue); outline: none; }
+        
         button {
-            width: 100%; padding: 12px; background: var(--accent-green); color: #121214;
-            border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 5px;
+            width: 100%; padding: 12px; background: var(--accent-green); color: #16151d;
+            border: none; border-radius: 14px; font-size: 1rem; font-weight: 900; cursor: pointer; 
+            margin-top: 8px; transition: transform 0.1s ease;
         }
-        button.secondary { background: transparent; border: 1px solid var(--border); color: var(--text-main); }
-        button.delete-btn { background: #e74c3c; color: white; width: auto; padding: 5px 10px; font-size: 0.75rem; margin: 0; }
+        button:active { transform: scale(0.97); }
+        button.secondary { background: transparent; border: 2px solid var(--border); color: var(--text-main); }
+        button.delete-btn { background: var(--accent-pink); color: white; width: auto; padding: 5px 12px; font-size: 0.8rem; margin: 0; border-radius: 8px; }
+        button.edit-btn { background: var(--accent-blue); color: #16151d; width: auto; padding: 5px 10px; font-size: 0.8rem; margin: 0; border-radius: 8px; }
+        button.action-link { background: #1a1824; border: 1px dashed var(--accent-blue); color: var(--accent-blue); width: 100%; padding: 10px; font-size: 0.9rem; font-weight: bold; border-radius: 12px; margin: 5px 0 15px 0; }
+
+        /* Multi-add layouts */
+        .multi-add-row { display: grid; grid-template-columns: auto 2fr 1fr auto; gap: 8px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+        .multi-add-row input[type="number"] { margin: 0; padding: 6px; font-size: 0.9rem; text-align: center; }
+        .multi-add-row input[type="checkbox"] { width: 22px; height: 22px; margin: 0; accent-color: var(--accent-green); cursor: pointer; }
         
         .food-item {
             display: flex; justify-content: space-between; align-items: center;
@@ -81,13 +100,16 @@
         }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .chart-container { position: relative; margin-top: 15px; height: 180px; }
+        
+        .recipe-select-box { max-height: 150px; overflow-y: auto; background: #1a1824; padding: 10px; border-radius: 12px; border: 2px solid var(--border); margin-bottom: 10px; }
+        .recipe-select-item { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; font-size: 0.9rem; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <h1>Macros Tracker</h1>
+        <h1>✨ Macros Tracker ✨</h1>
         <div class="date-scroller">
             <button class="date-btn" onclick="changeDate(-1)">◀</button>
             <h3 id="display-date">Today</h3>
@@ -95,148 +117,164 @@
         </div>
     </div>
 
+    <!-- MAIN DASHBOARD HERO -->
     <div class="card">
         <div class="calorie-hero">
             <div class="calorie-big" id="cal-remaining">0</div>
-            <div class="calorie-sub" id="cal-breakdown">Goal: 0 | Food: 0 | Burned: 0</div>
+            <div class="calorie-sub" id="cal-breakdown">Goal: 0 | Eaten: 0 | Burned: 0</div>
         </div>
         <div class="grid-4">
-            <div class="macro-box">Carbs<span id="carb-status">0/0g</span></div>
-            <div class="macro-box">Protein<span id="protein-status">0/0g</span></div>
-            <div class="macro-box">Fat<span id="fat-status">0/0g</span></div>
-            <div class="macro-box fiber-highlight">Fiber<span id="fiber-status">0/0g</span></div>
+            <div class="macro-box">🥑 Carbs<span id="carb-status">0/0g</span></div>
+            <div class="macro-box">🍗 Prot<span id="protein-status">0/0g</span></div>
+            <div class="macro-box">🧈 Fat<span id="fat-status">0/0g</span></div>
+            <div class="macro-box fiber-highlight">🦄 Fiber<span id="fiber-status">0/0g</span></div>
         </div>
     </div>
 
+    <!-- MAIN PANELS: INTERACTIVE LOGGING CHECKLIST -->
     <div class="card">
-        <h3>🍽️ Quick Log Food</h3>
-        <label>Select Food Base</label>
-        <select id="food-selector"></select>
-        <div class="grid-2">
-            <div>
-                <label>Num of Servings</label>
-                <input type="number" id="food-servings" value="1" step="0.1" oninput="calculateLiveWeight()">
-            </div>
-            <div>
-                <label>Total Calculated</label>
-                <input type="text" id="live-weight-display" value="0g" disabled style="opacity: 0.6; text-align: center;">
-            </div>
-        </div>
-        <button onclick="logFood()">Log to Diary</button>
+        <h3>🍽️ Log Your Meals</h3>
+        <button class="action-link" onclick="copyYesterdayLog()">📋 Copy Yesterday's Food Log</button>
         
-        <h4 style="margin-top:20px; margin-bottom:5px;">Entries for this day:</h4>
+        <div id="multi-add-container" style="max-height: 280px; overflow-y: auto; margin-bottom: 12px;">
+            <!-- Loaded dynamically with edit support options -->
+        </div>
+        <button onclick="logSelectedFoods()">Log Checked Items ✨</button>
+        
+        <h4 style="margin-top:25px; margin-bottom:5px;">Eaten List:</h4>
         <div id="today-food-list"></div>
     </div>
 
+    <!-- ACCORDION PANEL WATER -->
     <div class="accordion">
         <div class="accordion-header" onclick="toggleAccordion(this)">💧 Water Log</div>
         <div class="accordion-content">
-            <div style="font-size: 1.3rem; margin-bottom:10px; text-align: center;"><span id="water-display">0</span> ml</div>
+            <div style="font-size: 1.5rem; margin-bottom:12px; text-align: center; font-weight:800; color:var(--accent-blue);"><span id="water-display">0</span> ml</div>
             <div class="grid-2">
-                <button onclick="addWater(250)">+250ml</button>
-                <button onclick="addWater(500)" style="background: var(--accent-blue)">+500ml</button>
+                <button onclick="addWater(250)" style="background:var(--card-bg); border:2px solid var(--border); color:white;">+250ml 🥛</button>
+                <button onclick="addWater(500)" style="background: var(--accent-blue); color:#16151d;">+500ml 💧</button>
             </div>
         </div>
     </div>
 
+    <!-- ACCORDION PANEL EXERCISE WALKING -->
     <div class="accordion">
-        <div class="accordion-header" onclick="toggleAccordion(this)">🚶 Walking Exercise</div>
+        <div class="accordion-header" onclick="toggleAccordion(this)">🚶 Walking Tracks</div>
         <div class="accordion-content">
-            <p style="margin-top:0; font-size:0.85rem; color:var(--text-muted);">Walking adds back calories dynamically (Calculates approx. 4.5 cal/min or 65 cal/km).</p>
+            <p style="margin-top:0; font-size:0.85rem; color:var(--text-muted);">Walking updates remaining limits automatically (4.5 cal/min or 65 cal/km).</p>
             <div class="grid-2">
                 <div>
-                    <label>Duration (Minutes)</label>
-                    <input type="number" id="exe-mins" placeholder="e.g. 15" oninput="document.getElementById('exe-km').value=''">
+                    <label>⏱️ Minutes</label>
+                    <input type="number" id="exe-mins" placeholder="15" oninput="document.getElementById('exe-km').value=''">
                 </div>
                 <div>
-                    <label>Distance (KM)</label>
-                    <input type="number" id="exe-km" placeholder="e.g. 1.2" oninput="document.getElementById('exe-mins').value=''">
+                    <label>🗺️ Distance (KM)</label>
+                    <input type="number" id="exe-km" placeholder="1.2" oninput="document.getElementById('exe-mins').value=''">
                 </div>
             </div>
-            <button onclick="logExercise()" style="background:var(--accent-blue);">Add Burned Calories</button>
+            <button onclick="logExercise()" style="background:var(--accent-purple); color:#16151d;">Log My Walk 🍃</button>
         </div>
     </div>
 
+    <!-- ACCORDION PANEL CUSTOM MEAL BUILDER -->
     <div class="accordion">
-        <div class="accordion-header" onclick="toggleAccordion(this)">⚖️ Daily Weight</div>
+        <div class="accordion-header" onclick="toggleAccordion(this)">🍳 Custom Recipe Builder</div>
         <div class="accordion-content">
-            <label>Log Daily Weight (kg)</label>
+            <input type="text" id="recipe-name" placeholder="Meal Package Title (e.g. Smoothie)">
+            <label>Check Ingredients to Group:</label>
+            <div class="recipe-select-box" id="recipe-ingredients-list"></div>
+            <button onclick="createCustomRecipe()" style="background: var(--accent-blue); color:#16151d;">Save Grouped Meal 🍱</button>
+        </div>
+    </div>
+
+    <!-- ACCORDION PANEL WEIGHT TRACKER -->
+    <div class="accordion">
+        <div class="accordion-header" onclick="toggleAccordion(this)">⚖️ Daily Weight Track</div>
+        <div class="accordion-content">
+            <label>Enter Weight Metrics (kg)</label>
             <input type="number" id="weight-input" step="0.1" placeholder="e.g. 72.5">
-            <button onclick="saveWeight()">Save Weight</button>
+            <button onclick="saveWeight()">Save Weight 🍰</button>
         </div>
     </div>
 
-    <div class="accordion">
-        <div class="accordion-header" onclick="toggleAccordion(this)">➕ Custom Food Creation</div>
+    <!-- ACCORDION PANEL MANAGE & CREATE FOODS -->
+    <div class="accordion" id="accordion-food-form">
+        <div class="accordion-header" id="food-form-title">➕ Create Custom Food</div>
         <div class="accordion-content">
-            <input type="text" id="nf-name" placeholder="Food Name (e.g. Curd)">
+            <input type="hidden" id="edit-food-index" value="-1">
+            <input type="text" id="nf-name" placeholder="Food item name (e.g. Curd)">
             <div class="grid-2">
-                <input type="number" id="nf-serving-size" placeholder="Base Serving Size (e.g. 50)">
-                <select id="nf-unit"><option value="gm">grams (gm)</option><option value="ml">ml</option></select>
+                <input type="number" id="nf-serving-size" placeholder="Serving weight (50)">
+                <select id="nf-unit"><option value="gm">gm</option><option value="ml">ml</option></select>
             </div>
             <div class="grid-2">
                 <input type="number" id="nf-cal" placeholder="Calories">
-                <input type="number" id="nf-carb" placeholder="Carbs (g)">
-                <input type="number" id="nf-protein" placeholder="Protein (g)">
-                <input type="number" id="nf-fat" placeholder="Fat (g)">
+                <input type="number" id="nf-carb" placeholder="Carbs">
+                <input type="number" id="nf-protein" placeholder="Protein">
+                <input type="number" id="nf-fat" placeholder="Fat">
             </div>
             <input type="number" id="nf-fiber" placeholder="Fiber (g)">
-            <button onclick="createCustomFood()">Save to My Database</button>
+            <button onclick="createOrUpdateFood()" id="food-save-btn">Save to Personal Base ✨</button>
+            <button onclick="cancelFoodEdit()" id="food-cancel-btn" class="secondary" style="display:none; margin-top:5px;">Cancel Edit</button>
         </div>
     </div>
 
+    <!-- ACCORDION PANEL PROFILE SPECIFICS -->
     <div class="accordion">
         <div class="accordion-header" onclick="toggleAccordion(this)">⚙️ Target Parameters & Profile</div>
         <div class="accordion-content">
+            <div style="background:#1a1824; padding:12px; border-radius:14px; border:2px solid var(--accent-blue); margin-bottom:15px;">
+                <h4 style="color:var(--accent-blue); margin-bottom:5px;">🧠 MacroFactor Metabolism Review</h4>
+                <p style="margin:0 0 10px 0; font-size:0.8rem; color:var(--text-muted);">Calculates exact energy outputs dynamically based on weight shifts.</p>
+                <button onclick="recalibrateSmartTargets()" style="background:var(--accent-blue); color:#16151d; font-size:0.85rem; padding:8px;">Recalibrate Targets Now</button>
+                <div id="smart-recalc-output" style="font-size:0.8rem; margin-top:8px; font-style:italic; color:var(--accent-green);"></div>
+            </div>
             <div class="grid-2">
                 <input type="number" id="prof-age" placeholder="Age">
                 <select id="prof-gender"><option value="female">Female</option><option value="male">Male</option></select>
                 <input type="number" id="prof-height" placeholder="Height (cm)">
                 <input type="number" id="prof-weight" placeholder="Base Weight (kg)">
             </div>
-            <label>Goal Structure</label>
             <select id="prof-goal">
                 <option value="-500">Lose Weight (-500 cal)</option>
                 <option value="0">Maintain Weight</option>
                 <option value="500">Gain Muscle (+500 cal)</option>
             </select>
-            <button onclick="calculateBMRGoals()">Auto Calculate Macro Splits</button>
-            <hr style="border:0; border-top:1px solid var(--border); margin:15px 0;">
+            <button onclick="calculateBMRGoals()">Auto Split Macros</button>
+            <hr style="border:0; border-top:2px solid var(--border); margin:15px 0;">
             <div class="grid-2">
                 <div><label>Calorie Goal</label><input type="number" id="goal-cal"></div>
-                <div><label>Carb Goal (g)</label><input type="number" id="goal-carb"></div>
-                <div><label>Protein Goal (g)</label><input type="number" id="goal-protein"></div>
-                <div><label>Fat Goal (g)</label><input type="number" id="goal-fat"></div>
+                <div><label>Carb Goal</label><input type="number" id="goal-carb"></div>
+                <div><label>Protein Goal</label><input type="number" id="goal-protein"></div>
+                <div><label>Fat Goal</label><input type="number" id="goal-fat"></div>
             </div>
-            <label style="color:var(--accent-purple)">Custom Fiber Goal (g)</label>
+            <label style="color:var(--accent-purple)">Custom Fiber Goal</label>
             <input type="number" id="goal-fiber">
-            <button class="secondary" onclick="saveManualGoals()">Override & Save Goals</button>
+            <button class="secondary" onclick="saveManualGoals()">Manual Save Targets</button>
         </div>
     </div>
 
+    <!-- GRAPH VIEW CARDS -->
     <div class="card">
-        <h3>📉 Weight Tracking Trend</h3>
+        <h3>📉 Weight Tracker</h3>
         <div class="chart-container"><canvas id="weightChart"></canvas></div>
     </div>
     <div class="card">
         <h3>📊 Protein & Fiber Progress</h3>
         <div class="chart-container"><canvas id="macroChart"></canvas></div>
     </div>
-
 </div>
 
 <script>
-    // System Time Engine Setup
     let currentDateIndex = 0; 
-    function getTargetDateString() {
+    function getTargetDateString(offset = 0) {
         let d = new Date();
-        d.setDate(d.getDate() + currentDateIndex);
+        d.setDate(d.getDate() + currentDateIndex + offset);
         return d.toISOString().split('T')[0];
     }
 
-    // Storage Structures
     let appData = JSON.parse(localStorage.getItem('macrosTrackerData')) || {
-        customFoods: [{ name: "Curd", baseServing: 50, unit: "gm", calories: 50, carbs: 2, protein: 4, fat: 2, fiber: 0 }],
+        customFoods: [{ isRecipe: false, name: "Curd", baseServing: 50, unit: "gm", calories: 50, carbs: 2, protein: 4, fat: 2, fiber: 1 }],
         dailyLogs: {},
         goals: { calories: 1800, carbs: 150, protein: 120, fat: 55, fiber: 25 },
         profile: { age: 25, gender: 'female', height: 165, weight: 70, goal: -500 }
@@ -269,18 +307,9 @@
         updateUI();
     }
 
-    function calculateLiveWeight() {
-        const selector = document.getElementById('food-selector');
-        const servings = parseFloat(document.getElementById('food-servings').value) || 0;
-        if(selector.value === "") {
-            document.getElementById('live-weight-display').value = "0g";
-            return;
-        }
-        const food = appData.customFoods[selector.value];
-        document.getElementById('live-weight-display').value = `${Math.round(food.baseServing * servings)}${food.unit}`;
-    }
-
-    function createCustomFood() {
+    // NEW LOGIC BLOCK: CREATE OR EDIT EXTENSION
+    function createOrUpdateFood() {
+        const index = parseInt(document.getElementById('edit-food-index').value);
         const name = document.getElementById('nf-name').value || "Custom Food";
         const baseServing = parseFloat(document.getElementById('nf-serving-size').value) || 100;
         const unit = document.getElementById('nf-unit').value;
@@ -290,42 +319,130 @@
         const fat = parseInt(document.getElementById('nf-fat').value) || 0;
         const fiber = parseInt(document.getElementById('nf-fiber').value) || 0;
 
-        appData.customFoods.push({ name, baseServing, unit, calories, carbs, protein, fat, fiber });
+        const foodObject = { isRecipe: false, name, baseServing, unit, calories, carbs, protein, fat, fiber };
+
+        if (index === -1) {
+            // Add a brand new item
+            appData.customFoods.push(foodObject);
+        } else {
+            // Overwrite existing indexed food entry
+            appData.customFoods[index] = foodObject;
+            cancelFoodEdit(); // Reset form view title changes
+        }
+
         saveToStorage();
-        
-        // Reset form fields
         ['nf-name','nf-serving-size','nf-cal','nf-carb','nf-protein','nf-fat','nf-fiber'].forEach(id=>document.getElementById(id).value='');
     }
 
-    function logFood() {
-        let dayStr = getTargetDateString();
-        const idx = document.getElementById('food-selector').value;
-        const servings = parseFloat(document.getElementById('food-servings').value) || 1;
-        if(idx === "") return;
+    function startFoodEdit(index) {
+        const food = appData.customFoods[index];
+        if (food.isRecipe) { alert("To change recipes, build a new meal layout directly!"); return; }
 
-        const base = appData.customFoods[idx];
-        appData.dailyLogs[dayStr].foods.push({
-            name: base.name,
-            servings: servings,
-            weightCalculated: Math.round(base.baseServing * servings) + base.unit,
-            calories: Math.round(base.calories * servings),
-            carbs: Math.round(base.carbs * servings),
-            protein: Math.round(base.protein * servings),
-            fat: Math.round(base.fat * servings),
-            fiber: Math.round(base.fiber * servings)
+        document.getElementById('edit-food-index').value = index;
+        document.getElementById('nf-name').value = food.name;
+        document.getElementById('nf-serving-size').value = food.baseServing;
+        document.getElementById('nf-unit').value = food.unit;
+        document.getElementById('nf-cal').value = food.calories;
+        document.getElementById('nf-carb').value = food.carbs;
+        document.getElementById('nf-protein').value = food.protein;
+        document.getElementById('nf-fat').value = food.fat;
+        document.getElementById('nf-fiber').value = food.fiber;
+
+        // Visual layout updates
+        document.getElementById('food-form-title').innerText = `✏️ Editing: ${food.name}`;
+        document.getElementById('food-save-btn').innerText = "Update Food Entry ✨";
+        document.getElementById('food-cancel-btn').style.display = "block";
+        
+        // Open the food form accordion
+        document.getElementById('accordion-food-form').classList.add('open');
+        document.getElementById('accordion-food-form').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function cancelFoodEdit() {
+        document.getElementById('edit-food-index').value = "-1";
+        document.getElementById('food-form-title').innerText = "➕ Create Custom Food";
+        document.getElementById('food-save-btn').innerText = "Save to Personal Base ✨";
+        document.getElementById('food-cancel-btn').style.display = "none";
+        ['nf-name','nf-serving-size','nf-cal','nf-carb','nf-protein','nf-fat','nf-fiber'].forEach(id=>document.getElementById(id).value='');
+    }
+
+    function createCustomRecipe() {
+        const name = document.getElementById('recipe-name').value || "Custom Meal Package";
+        const checkboxes = document.querySelectorAll('.recipe-check');
+        let combinedMacros = { calories: 0, carbs: 0, protein: 0, fat: 0, fiber: 0 };
+        let ingredientsIncluded = [];
+
+        checkboxes.forEach(box => {
+            if (box.checked) {
+                const baseFood = appData.customFoods[box.value];
+                combinedMacros.calories += baseFood.calories; combinedMacros.carbs += baseFood.carbs;
+                combinedMacros.protein += baseFood.protein; combinedMacros.fat += baseFood.fat; combinedMacros.fiber += baseFood.fiber;
+                ingredientsIncluded.push(baseFood.name);
+            }
+        });
+
+        if (ingredientsIncluded.length === 0) return alert("Select ingredients first!");
+
+        appData.customFoods.push({
+            isRecipe: true, name: `🍳 ${name}`, baseServing: 1, unit: "meal",
+            calories: combinedMacros.calories, carbs: combinedMacros.carbs, protein: combinedMacros.protein, fat: combinedMacros.fat, fiber: combinedMacros.fiber
+        });
+
+        document.getElementById('recipe-name').value = '';
+        saveToStorage();
+    }
+
+    function copyYesterdayLog() {
+        let todayStr = getTargetDateString();
+        let yesterdayStr = getTargetDateString(-1);
+        if (!appData.dailyLogs[yesterdayStr] || appData.dailyLogs[yesterdayStr].foods.length === 0) return alert("No items logged yesterday!");
+        appData.dailyLogs[todayStr].foods = [...appData.dailyLogs[yesterdayStr].foods];
+        saveToStorage();
+    }
+
+    function logSelectedFoods() {
+        let dayStr = getTargetDateString();
+        document.querySelectorAll('.multi-add-row').forEach(row => {
+            const checkbox = row.querySelector('.food-chk');
+            if (checkbox && checkbox.checked) {
+                const baseFood = appData.customFoods[checkbox.value];
+                const servings = parseFloat(row.querySelector('.food-srv').value) || 1;
+                appData.dailyLogs[dayStr].foods.push({
+                    name: baseFood.name, servings,
+                    weightCalculated: baseFood.isRecipe ? "1 package" : Math.round(baseFood.baseServing * servings) + baseFood.unit,
+                    calories: Math.round(baseFood.calories * servings), carbs: Math.round(baseFood.carbs * servings),
+                    protein: Math.round(baseFood.protein * servings), fat: Math.round(baseFood.fat * servings), fiber: Math.round(baseFood.fiber * servings)
+                });
+            }
         });
         saveToStorage();
     }
 
+    function recalibrateSmartTargets() {
+        let dates = Object.keys(appData.dailyLogs).sort().slice(-7);
+        if (dates.length < 3) { document.getElementById('smart-recalc-output').innerText = "Needs 3 days of entries."; return; }
+        let totalCal = 0, trackedWeights = [];
+        dates.forEach(d => {
+            totalCal += appData.dailyLogs[d].foods.reduce((acc, f) => acc + f.calories, 0);
+            if (appData.dailyLogs[d].weight) trackedWeights.push(appData.dailyLogs[d].weight);
+        });
+        if (trackedWeights.length < 2) { document.getElementById('smart-recalc-output').innerText = "Add weight logs inside entries."; return; }
+        
+        let calculatedTDEE = (totalCal / dates.length) - ((trackedWeights[trackedWeights.length - 1] - trackedWeights[0]) * 7700 / dates.length);
+        let targetCals = Math.max(1200, Math.round(calculatedTDEE + (appData.profile.goal || 0)));
+
+        appData.goals = { calories: targetCals, carbs: Math.round((targetCals*0.4)/4), protein: Math.round((targetCals*0.3)/4), fat: Math.round((targetCals*0.3)/9), fiber: (appData.profile.gender==='male'?35:25) };
+        document.getElementById('smart-recalc-output').innerText = `Synced to ${targetCals} kcal updates!`;
+        saveToStorage();
+    }
+
     function deleteLoggedFood(index) {
-        let dayStr = getTargetDateString();
-        appData.dailyLogs[dayStr].foods.splice(index, 1);
+        appData.dailyLogs[getTargetDateString()].foods.splice(index, 1);
         saveToStorage();
     }
 
     function addWater(amount) {
-        let dayStr = getTargetDateString();
-        appData.dailyLogs[dayStr].water += amount;
+        appData.dailyLogs[getTargetDateString()].water += amount;
         saveToStorage();
     }
 
@@ -333,25 +450,14 @@
         let dayStr = getTargetDateString();
         const mins = parseFloat(document.getElementById('exe-mins').value) || 0;
         const km = parseFloat(document.getElementById('exe-km').value) || 0;
-        let burned = 0;
-
-        if (mins > 0) burned = mins * 4.5; // Walk estimate baseline
-        else if (km > 0) burned = km * 65;
-
-        appData.dailyLogs[dayStr].exerciseCal += Math.round(burned);
-        document.getElementById('exe-mins').value = '';
-        document.getElementById('exe-km').value = '';
+        appData.dailyLogs[dayStr].exerciseCal += Math.round(mins ? mins * 4.5 : km * 65);
+        document.getElementById('exe-mins').value = ''; document.getElementById('exe-km').value = '';
         saveToStorage();
     }
 
     function saveWeight() {
-        let dayStr = getTargetDateString();
         const w = parseFloat(document.getElementById('weight-input').value);
-        if(w) {
-            appData.dailyLogs[dayStr].weight = w;
-            appData.profile.weight = w;
-            saveToStorage();
-        }
+        if(w) { appData.dailyLogs[getTargetDateString()].weight = w; appData.profile.weight = w; saveToStorage(); }
     }
 
     function calculateBMRGoals() {
@@ -359,42 +465,34 @@
         const gender = document.getElementById('prof-gender').value;
         const height = parseFloat(document.getElementById('prof-height').value) || 165;
         const weight = parseFloat(document.getElementById('prof-weight').value) || 70;
-        const modifier = parseFloat(document.getElementById('prof-goal').value);
-
-        let bmr = (10 * weight) + (6.25 * height) - (5 * age);
-        bmr = (gender === 'male') ? bmr + 5 : bmr - 161;
-        let tdee = Math.round((bmr * 1.2) + modifier);
+        let bmr = (10 * weight) + (6.25 * height) - (5 * age) + (gender === 'male' ? 5 : -161);
+        let tdee = Math.round((bmr * 1.2) + parseFloat(document.getElementById('prof-goal').value));
 
         appData.goals = { calories: tdee, carbs: Math.round((tdee*0.4)/4), protein: Math.round((tdee*0.3)/4), fat: Math.round((tdee*0.3)/9), fiber: (gender==='male'?35:25) };
-        appData.profile = { age, gender, height, weight, goal: modifier };
+        appData.profile = { age, gender, height, weight, goal: parseFloat(document.getElementById('prof-goal').value) };
         saveToStorage();
     }
 
     function saveManualGoals() {
-        appData.goals.calories = parseInt(document.getElementById('goal-cal').value) || 2000;
-        appData.goals.carbs = parseInt(document.getElementById('goal-carb').value) || 150;
-        appData.goals.protein = parseInt(document.getElementById('goal-protein').value) || 120;
-        appData.goals.fat = parseInt(document.getElementById('goal-fat').value) || 50;
-        appData.goals.fiber = parseInt(document.getElementById('goal-fiber').value) || 25;
+        appData.goals.calories = parseInt(document.getElementById('goal-cal').value);
+        appData.goals.carbs = parseInt(document.getElementById('goal-carb').value);
+        appData.goals.protein = parseInt(document.getElementById('goal-protein').value);
+        appData.goals.fat = parseInt(document.getElementById('goal-fat').value);
+        appData.goals.fiber = parseInt(document.getElementById('goal-fiber').value);
         saveToStorage();
     }
 
     function renderCharts() {
-        const sortedDates = Object.keys(appData.dailyLogs).sort().slice(-7); // Last 7 metrics data days
-        const weightData = sortedDates.map(d => appData.dailyLogs[d].weight || null);
-        const proteinData = sortedDates.map(d => appData.dailyLogs[d].foods.reduce((acc,f)=>acc+f.protein, 0));
-        const fiberData = sortedDates.map(d => appData.dailyLogs[d].foods.reduce((acc,f)=>acc+f.fiber, 0));
-
+        const sortedDates = Object.keys(appData.dailyLogs).sort().slice(-7);
         if (weightChartInstance) weightChartInstance.destroy();
         if (macroChartInstance) macroChartInstance.destroy();
 
-        // Dark Chart styling baselines
-        Chart.defaults.color = '#a0a0a5';
-        Chart.defaults.borderColor = '#2d2d34';
+        Chart.defaults.color = '#9d9aa7';
+        Chart.defaults.borderColor = '#2f2b43';
 
         weightChartInstance = new Chart(document.getElementById('weightChart'), {
             type: 'line',
-            data: { labels: sortedDates, datasets: [{ label: 'Weight (kg)', data: weightData, borderColor: '#2ecc71', tension: 0.2, fill: false }] },
+            data: { labels: sortedDates, datasets: [{ label: 'Weight (kg)', data: sortedDates.map(d => appData.dailyLogs[d].weight || null), borderColor: '#38ef7d', tension: 0.3, fill: false }] },
             options: { responsive: true, maintainAspectRatio: false }
         });
 
@@ -403,77 +501,73 @@
             data: {
                 labels: sortedDates,
                 datasets: [
-                    { label: 'Protein (g)', data: proteinData, backgroundColor: '#3498db' },
-                    { label: 'Fiber (g)', data: fiberData, backgroundColor: '#bb86fc' }
+                    { label: 'Protein (g)', data: sortedDates.map(d => appData.dailyLogs[d].foods.reduce((acc,f)=>acc+f.protein, 0)), backgroundColor: '#70d6ff' },
+                    { label: 'Fiber (g)', data: sortedDates.map(d => appData.dailyLogs[d].foods.reduce((acc,f)=>acc+f.fiber, 0)), backgroundColor: '#e0aaff' }
                 ]
             },
-            options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: false }, y: { stacked: false } } }
+            options: { responsive: true, maintainAspectRatio: false }
         });
     }
 
     function updateUI() {
         let dayStr = getTargetDateString();
         let log = appData.dailyLogs[dayStr];
-
         let totals = { calories: 0, carbs: 0, protein: 0, fat: 0, fiber: 0 };
-        log.foods.forEach(f => {
-            totals.calories += f.calories; totals.carbs += f.carbs; totals.protein += f.protein; totals.fat += f.fat; totals.fiber += f.fiber;
-        });
+        log.foods.forEach(f => { totals.calories += f.calories; totals.carbs += f.carbs; totals.protein += f.protein; totals.fat += f.fat; totals.fiber += f.fiber; });
 
-        // Compute targets factoring walking adjustments directly
-        let netRemaining = (appData.goals.calories + log.exerciseCal) - totals.calories;
-        document.getElementById('cal-remaining').innerText = netRemaining;
-        document.getElementById('cal-breakdown').innerText = `Goal: ${appData.goals.calories} | Eaten: ${totals.calories} | Exercise: +${log.exerciseCal} cal`;
+        document.getElementById('cal-remaining').innerText = (appData.goals.calories + log.exerciseCal) - totals.calories;
+        document.getElementById('cal-breakdown').innerText = `Goal: ${appData.goals.calories} | Eaten: ${totals.calories} | Walk: +${log.exerciseCal}`;
 
         document.getElementById('carb-status').innerText = `${totals.carbs}/${appData.goals.carbs}g`;
         document.getElementById('protein-status').innerText = `${totals.protein}/${appData.goals.protein}g`;
         document.getElementById('fat-status').innerText = `${totals.fat}/${appData.goals.fat}g`;
         document.getElementById('fiber-status').innerText = `${totals.fiber}/${appData.goals.fiber}g`;
-
         document.getElementById('water-display').innerText = log.water;
-        document.getElementById('weight-input').value = log.weight || "";
 
-        // Selection Engine Sync
-        let selector = document.getElementById('food-selector');
-        selector.innerHTML = '<option value="">-- Select Food --</option>';
+        // Render Dynamic Checklist with Edit Buttons
+        let multiContainer = document.getElementById('multi-add-container');
+        multiContainer.innerHTML = appData.customFoods.length === 0 ? '<p style="color:var(--text-muted); font-size:0.85rem; padding:10px;">No custom foods yet! Use the panels below.</p>' : '';
+        
         appData.customFoods.forEach((f, i) => {
-            selector.innerHTML += `<option value="${i}">${f.name} (${f.baseServing}${f.unit})</option>`;
-        });
-        calculateLiveWeight();
-
-        // Print today's logged list layout
-        let listDiv = document.getElementById('today-food-list');
-        listDiv.innerHTML = log.foods.length === 0 ? '<p style="color:var(--text-muted); font-size:0.9rem;">No meals logged for this day yet.</p>' : '';
-        log.foods.forEach((f, idx) => {
-            listDiv.innerHTML += `
-                <div class="food-item">
-                    <div>
-                        <strong>${f.name}</strong> (${f.weightCalculated})<br>
-                        <small style="color:var(--text-muted)">P: ${f.protein}g | Fib: ${f.fiber}g | C: ${f.carbs}g | F: ${f.fat}g</small>
-                    </div>
-                    <div style="text-align:right; display:flex; align-items:center; gap:10px;">
-                        <span>${f.calories} cal</span>
-                        <button class="delete-btn" onclick="deleteLoggedFood(${idx})">×</button>
-                    </div>
+            let labelText = f.isRecipe ? "recipe" : `${f.baseServing}${f.unit}`;
+            let editButtonHtml = f.isRecipe ? '<span></span>' : `<button class="edit-btn" onclick="startFoodEdit(${i})">✏️</button>`;
+            
+            multiContainer.innerHTML += `
+                <div class="multi-add-row">
+                    <input type="checkbox" class="food-chk" value="${i}">
+                    <div style="font-size:0.9rem; font-weight:bold; overflow:hidden; text-overflow:ellipsis;">${f.name} <span style="font-size:0.75rem; color:var(--text-muted);">(${labelText})</span></div>
+                    <input type="number" class="food-srv" value="1" step="0.1" style="width:50px;">
+                    ${editButtonHtml}
                 </div>`;
         });
 
-        // Set static control settings inputs
-        document.getElementById('goal-cal').value = appData.goals.calories;
-        document.getElementById('goal-carb').value = appData.goals.carbs;
-        document.getElementById('goal-protein').value = appData.goals.protein;
-        document.getElementById('goal-fat').value = appData.goals.fat;
-        document.getElementById('goal-fiber').value = appData.goals.fiber;
-        document.getElementById('prof-age').value = appData.profile.age;
-        document.getElementById('prof-height').value = appData.profile.height;
-        document.getElementById('prof-weight').value = appData.profile.weight;
-        document.getElementById('prof-gender').value = appData.profile.gender;
-        document.getElementById('prof-goal').value = appData.profile.goal;
+        // Recipe ingredient options logic
+        let recipeIngDiv = document.getElementById('recipe-ingredients-list');
+        recipeIngDiv.innerHTML = '';
+        appData.customFoods.forEach((f, i) => {
+            if(!f.isRecipe) recipeIngDiv.innerHTML += `<div class="recipe-select-item"><input type="checkbox" class="recipe-check" value="${i}"> <span>${f.name}</span></div>`;
+        });
+
+        // Render today's actual food dairy entries list
+        let listDiv = document.getElementById('today-food-list');
+        listDiv.innerHTML = log.foods.length === 0 ? '<p style="color:var(--text-muted); font-size:0.85rem; font-style:italic;">Diary empty.</p>' : '';
+        log.foods.forEach((f, idx) => {
+            listDiv.innerHTML += `
+                <div class="food-item">
+                    <div><strong>${f.name}</strong> <span style="font-size:0.8rem; color:var(--text-muted)">(${f.weightCalculated})</span><br><small style="color:var(--text-muted)">P: ${f.protein}g | Fib: ${f.fiber}g</small></div>
+                    <div style="text-align:right; display:flex; align-items:center; gap:8px;"><span>${f.calories} c</span><button class="delete-btn" onclick="deleteLoggedFood(${idx})">×</button></div>
+                </div>`;
+        });
+
+        // Set static configuration profiles fields mapping values
+        ['goal-cal','goal-carb','goal-protein','goal-fat','goal-fiber','prof-age','prof-height','prof-weight','prof-gender','prof-goal'].forEach(id=>{
+            let key = id.split('-')[1];
+            document.getElementById(id).value = id.startsWith('goal') ? appData.goals[key] : appData.profile[key];
+        });
 
         renderCharts();
     }
 
-    // Start-up triggers
     initCurrentDay();
     updateUI();
 </script>
