@@ -86,14 +86,9 @@
         button:active { transform: scale(0.97); }
         button.secondary { background: transparent; border: 2px solid var(--border); color: var(--text-main); }
         button.delete-btn { background: var(--accent-pink); color: white; width: auto; padding: 5px 12px; font-size: 0.8rem; margin: 0; border-radius: 8px; }
-        button.edit-btn { background: var(--accent-blue); color: #16151d; width: auto; padding: 5px 10px; font-size: 0.8rem; margin: 0; border-radius: 8px; }
+        button.edit-btn { background: var(--accent-blue); color: #16151d; width: 100%; padding: 10px; font-size: 0.9rem; margin-top: 5px; border-radius: 12px; font-weight: bold; }
         button.action-link { background: #1a1824; border: 1px dashed var(--accent-blue); color: var(--accent-blue); width: 100%; padding: 10px; font-size: 0.9rem; font-weight: bold; border-radius: 12px; margin: 5px 0 15px 0; }
 
-        /* Multi-add layouts */
-        .multi-add-row { display: grid; grid-template-columns: auto 2fr 1fr auto; gap: 8px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
-        .multi-add-row input[type="number"] { margin: 0; padding: 6px; font-size: 0.9rem; text-align: center; }
-        .multi-add-row input[type="checkbox"] { width: 22px; height: 22px; margin: 0; accent-color: var(--accent-green); cursor: pointer; }
-        
         .food-item {
             display: flex; justify-content: space-between; align-items: center;
             padding: 12px 0; border-bottom: 1px solid var(--border);
@@ -110,6 +105,12 @@
 <div class="container">
     <div class="header">
         <h1>✨ Macros Tracker ✨</h1>
+        
+        <!-- Emergency Reset Helper Tool Button -->
+        <button onclick="localStorage.clear(); location.reload();" style="background: var(--accent-pink); color: white; padding: 6px; font-size: 0.75rem; border-radius: 10px; margin-bottom: 10px; font-weight: bold; width: auto; display: inline-block;">
+            🔄 Force Update Vegetarian Defaults
+        </button>
+
         <div class="date-scroller">
             <button class="date-btn" onclick="changeDate(-1)">◀</button>
             <h3 id="display-date">Today</h3>
@@ -131,15 +132,27 @@
         </div>
     </div>
 
-    <!-- MAIN PANELS: INTERACTIVE LOGGING CHECKLIST -->
+    <!-- CLEAN DROPDOWN LOGGING WORKSPACE -->
     <div class="card">
         <h3>🍽️ Log Your Meals</h3>
         <button class="action-link" onclick="copyYesterdayLog()">📋 Copy Yesterday's Food Log</button>
         
-        <div id="multi-add-container" style="max-height: 280px; overflow-y: auto; margin-bottom: 12px;">
-            <!-- Loaded dynamically with edit support options -->
+        <label>Choose Food Item or Saved Meal Package</label>
+        <select id="main-food-selector" onchange="calculateLiveWeight()"></select>
+        
+        <div class="grid-2">
+            <div>
+                <label>Multiplier / Servings</label>
+                <input type="number" id="food-servings" value="1" step="0.1" oninput="calculateLiveWeight()">
+            </div>
+            <div>
+                <label>Calculated Amount</label>
+                <input type="text" id="live-weight-display" value="0gm" disabled style="opacity: 0.7; text-align: center; font-weight: bold; color: var(--accent-blue);">
+            </div>
         </div>
-        <button onclick="logSelectedFoods()">Log Checked Items ✨</button>
+        
+        <button onclick="logSingleFood()">Log to Diary ✨</button>
+        <button class="edit-btn" onclick="triggerEditFromSelection()">✏️ Edit Selected Item Database Definitions</button>
         
         <h4 style="margin-top:25px; margin-bottom:5px;">Eaten List:</h4>
         <div id="today-food-list"></div>
@@ -273,7 +286,6 @@
         return d.toISOString().split('T')[0];
     }
 
-    // HARDCODED VEGETARIAN INITIAL STAPLES DATABASE
     const defaultVegetarianDatabase = [
         { isRecipe: true, name: "🍳 Power Breakfast", baseServing: 1, unit: "meal", calories: 480, carbs: 45, protein: 25, fat: 14, fiber: 9 },
         { isRecipe: true, name: "🍳 CC Lunch", baseServing: 1, unit: "meal", calories: 550, carbs: 65, protein: 30, fat: 12, fiber: 11 },
@@ -291,7 +303,6 @@
         profile: { age: 25, gender: 'female', height: 165, weight: 70, goal: -500 }
     };
 
-    // Fallback sync to ensure database defaults update smoothly if local storage exists but items are blank
     if (!appData.customFoods || appData.customFoods.length === 0) {
         appData.customFoods = defaultVegetarianDatabase;
     }
@@ -323,6 +334,46 @@
         updateUI();
     }
 
+    function calculateLiveWeight() {
+        const idx = document.getElementById('main-food-selector').value;
+        const servings = parseFloat(document.getElementById('food-servings').value) || 0;
+        if(idx === "") {
+            document.getElementById('live-weight-display').value = "0gm";
+            return;
+        }
+        const food = appData.customFoods[idx];
+        if (food.isRecipe) {
+            document.getElementById('live-weight-display').value = "1 Combo Package";
+        } else {
+            document.getElementById('live-weight-display').value = `${Math.round(food.baseServing * servings)}${food.unit}`;
+        }
+    }
+
+    function logSingleFood() {
+        let dayStr = getTargetDateString();
+        const idx = document.getElementById('main-food-selector').value;
+        const servings = parseFloat(document.getElementById('food-servings').value) || 1;
+        if(idx === "") return alert("Please select a food item from the drop down first!");
+
+        const baseFood = appData.customFoods[idx];
+        appData.dailyLogs[dayStr].foods.push({
+            name: baseFood.name, servings,
+            weightCalculated: baseFood.isRecipe ? "1 package" : Math.round(baseFood.baseServing * servings) + baseFood.unit,
+            calories: Math.round(baseFood.calories * servings), carbs: Math.round(baseFood.carbs * servings),
+            protein: Math.round(baseFood.protein * servings), fat: Math.round(baseFood.fat * servings), fiber: Math.round(baseFood.fiber * servings)
+        });
+        
+        // Reset servings input back to standard baseline default
+        document.getElementById('food-servings').value = "1";
+        saveToStorage();
+    }
+
+    function triggerEditFromSelection() {
+        const idx = document.getElementById('main-food-selector').value;
+        if (idx === "") return alert("Select a custom item from the dropdown list to edit first!");
+        startFoodEdit(parseInt(idx));
+    }
+
     function createOrUpdateFood() {
         const index = parseInt(document.getElementById('edit-food-index').value);
         const name = document.getElementById('nf-name').value || "Custom Food";
@@ -349,7 +400,7 @@
 
     function startFoodEdit(index) {
         const food = appData.customFoods[index];
-        if (food.isRecipe) { alert("To update meal structures, compile a new layout package directly!"); return; }
+        if (food.isRecipe) { alert("To adjust meal package definitions, compile a new custom recipe directly!"); return; }
 
         document.getElementById('edit-food-index').value = index;
         document.getElementById('nf-name').value = food.name;
@@ -408,25 +459,6 @@
         let yesterdayStr = getTargetDateString(-1);
         if (!appData.dailyLogs[yesterdayStr] || appData.dailyLogs[yesterdayStr].foods.length === 0) return alert("No items logged yesterday!");
         appData.dailyLogs[todayStr].foods = [...appData.dailyLogs[yesterdayStr].foods];
-        saveToStorage();
-    }
-
-    function logSelectedFoods() {
-        let dayStr = getTargetDateString();
-        document.querySelectorAll('.multi-add-row').forEach(row => {
-            const checkbox = row.querySelector('.food-chk');
-            if (checkbox && checkbox.checked) {
-                const baseFood = appData.customFoods[checkbox.value];
-                const servings = parseFloat(row.querySelector('.food-srv').value) || 1;
-                appData.dailyLogs[dayStr].foods.push({
-                    name: baseFood.name, servings,
-                    weightCalculated: baseFood.isRecipe ? "1 package" : Math.round(baseFood.baseServing * servings) + baseFood.unit,
-                    calories: Math.round(baseFood.calories * servings), carbs: Math.round(baseFood.carbs * servings),
-                    protein: Math.round(baseFood.protein * servings), fat: Math.round(baseFood.fat * servings), fiber: Math.round(baseFood.fiber * servings)
-                });
-                checkbox.checked = false; // reset check flags
-            }
-        });
         saveToStorage();
     }
 
@@ -536,31 +568,29 @@
         document.getElementById('fiber-status').innerText = `${totals.fiber}/${appData.goals.fiber}g`;
         document.getElementById('water-display').innerText = log.water;
 
-        // Render Dynamic Checklist with Edit Buttons
-        let multiContainer = document.getElementById('multi-add-container');
-        multiContainer.innerHTML = appData.customFoods.length === 0 ? '<p style="color:var(--text-muted); font-size:0.85rem; padding:10px;">No custom foods yet!</p>' : '';
+        // Populate Main Dropdown Selector dynamically
+        let dropdown = document.getElementById('main-food-selector');
+        let currentSelection = dropdown.value; // Save current index to maintain place during DOM writes
         
+        dropdown.innerHTML = '<option value="">-- Choose Food or Meal Package --</option>';
         appData.customFoods.forEach((f, i) => {
-            let labelText = f.isRecipe ? "recipe" : `${f.baseServing}${f.unit}`;
-            let editButtonHtml = f.isRecipe ? '<span></span>' : `<button class="edit-btn" onclick="startFoodEdit(${i})">✏️</button>`;
-            
-            multiContainer.innerHTML += `
-                <div class="multi-add-row">
-                    <input type="checkbox" class="food-chk" value="${i}">
-                    <div style="font-size:0.9rem; font-weight:bold; overflow:hidden; text-overflow:ellipsis;">${f.name} <span style="font-size:0.75rem; color:var(--text-muted);">(${labelText})</span></div>
-                    <input type="number" class="food-srv" value="1" step="0.1" style="width:50px;">
-                    ${editButtonHtml}
-                </div>`;
+            let labelText = f.isRecipe ? "" : ` (${f.baseServing}${f.unit})`;
+            dropdown.innerHTML += `<option value="${i}">${f.name}${labelText}</option>`;
         });
+        
+        if (currentSelection && currentSelection < appData.customFoods.length) {
+            dropdown.value = currentSelection;
+        }
+        calculateLiveWeight();
 
-        // Recipe ingredient choices setup
+        // Recipe selection options logic loop
         let recipeIngDiv = document.getElementById('recipe-ingredients-list');
         recipeIngDiv.innerHTML = '';
         appData.customFoods.forEach((f, i) => {
             if(!f.isRecipe) recipeIngDiv.innerHTML += `<div class="recipe-select-item"><input type="checkbox" class="recipe-check" value="${i}"> <span>${f.name}</span></div>`;
         });
 
-        // Render today's actual food dairy entries list
+        // Render food entry summaries list
         let listDiv = document.getElementById('today-food-list');
         listDiv.innerHTML = log.foods.length === 0 ? '<p style="color:var(--text-muted); font-size:0.85rem; font-style:italic;">Diary empty.</p>' : '';
         log.foods.forEach((f, idx) => {
@@ -571,7 +601,7 @@
                 </div>`;
         });
 
-        // Set static control configuration fields mappings
+        // Sync data options attributes fields back to configurations objects
         ['goal-cal','goal-carb','goal-protein','goal-fat','goal-fiber','prof-age','prof-height','prof-weight','prof-gender','prof-goal'].forEach(id=>{
             let key = id.split('-')[1];
             document.getElementById(id).value = id.startsWith('goal') ? appData.goals[key] : appData.profile[key];
