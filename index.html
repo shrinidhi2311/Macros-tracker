@@ -125,7 +125,7 @@
         </div>
         <div class="grid-4">
             <div class="macro-box">🥑 Carbs<span id="carb-status">0/0g</span></div>
-            <div class="macro-box">🍗 Prot<span id="protein-status">0/0g</span></div>
+            <div class="macro-box">🧀 Prot<span id="protein-status">0/0g</span></div>
             <div class="macro-box">🧈 Fat<span id="fat-status">0/0g</span></div>
             <div class="macro-box fiber-highlight">🦄 Fiber<span id="fiber-status">0/0g</span></div>
         </div>
@@ -273,12 +273,28 @@
         return d.toISOString().split('T')[0];
     }
 
+    // HARDCODED VEGETARIAN INITIAL STAPLES DATABASE
+    const defaultVegetarianDatabase = [
+        { isRecipe: true, name: "🍳 Power Breakfast", baseServing: 1, unit: "meal", calories: 480, carbs: 45, protein: 25, fat: 14, fiber: 9 },
+        { isRecipe: true, name: "🍳 CC Lunch", baseServing: 1, unit: "meal", calories: 550, carbs: 65, protein: 30, fat: 12, fiber: 11 },
+        { isRecipe: false, name: "Curd (Whole Milk)", baseServing: 100, unit: "gm", calories: 60, carbs: 4, protein: 3, fat: 4, fiber: 0 },
+        { isRecipe: false, name: "Paneer (Cottage Cheese)", baseServing: 100, unit: "gm", calories: 290, carbs: 3, protein: 18, fat: 22, fiber: 0 },
+        { isRecipe: false, name: "White Rice (Cooked)", baseServing: 150, unit: "gm", calories: 200, carbs: 44, protein: 4, fat: 0, fiber: 1 },
+        { isRecipe: false, name: "Mixed Dal (Lentils)", baseServing: 150, unit: "gm", calories: 180, carbs: 28, protein: 11, fat: 2, fiber: 6 },
+        { isRecipe: false, name: "Oats (Raw)", baseServing: 40, unit: "gm", calories: 150, carbs: 27, protein: 5, fat: 3, fiber: 4 }
+    ];
+
     let appData = JSON.parse(localStorage.getItem('macrosTrackerData')) || {
-        customFoods: [{ isRecipe: false, name: "Curd", baseServing: 50, unit: "gm", calories: 50, carbs: 2, protein: 4, fat: 2, fiber: 1 }],
+        customFoods: defaultVegetarianDatabase,
         dailyLogs: {},
-        goals: { calories: 1800, carbs: 150, protein: 120, fat: 55, fiber: 25 },
+        goals: { calories: 1700, carbs: 160, protein: 110, fat: 50, fiber: 25 },
         profile: { age: 25, gender: 'female', height: 165, weight: 70, goal: -500 }
     };
+
+    // Fallback sync to ensure database defaults update smoothly if local storage exists but items are blank
+    if (!appData.customFoods || appData.customFoods.length === 0) {
+        appData.customFoods = defaultVegetarianDatabase;
+    }
 
     let weightChartInstance = null;
     let macroChartInstance = null;
@@ -307,7 +323,6 @@
         updateUI();
     }
 
-    // NEW LOGIC BLOCK: CREATE OR EDIT EXTENSION
     function createOrUpdateFood() {
         const index = parseInt(document.getElementById('edit-food-index').value);
         const name = document.getElementById('nf-name').value || "Custom Food";
@@ -322,12 +337,10 @@
         const foodObject = { isRecipe: false, name, baseServing, unit, calories, carbs, protein, fat, fiber };
 
         if (index === -1) {
-            // Add a brand new item
             appData.customFoods.push(foodObject);
         } else {
-            // Overwrite existing indexed food entry
             appData.customFoods[index] = foodObject;
-            cancelFoodEdit(); // Reset form view title changes
+            cancelFoodEdit();
         }
 
         saveToStorage();
@@ -336,7 +349,7 @@
 
     function startFoodEdit(index) {
         const food = appData.customFoods[index];
-        if (food.isRecipe) { alert("To change recipes, build a new meal layout directly!"); return; }
+        if (food.isRecipe) { alert("To update meal structures, compile a new layout package directly!"); return; }
 
         document.getElementById('edit-food-index').value = index;
         document.getElementById('nf-name').value = food.name;
@@ -348,12 +361,10 @@
         document.getElementById('nf-fat').value = food.fat;
         document.getElementById('nf-fiber').value = food.fiber;
 
-        // Visual layout updates
         document.getElementById('food-form-title').innerText = `✏️ Editing: ${food.name}`;
         document.getElementById('food-save-btn').innerText = "Update Food Entry ✨";
         document.getElementById('food-cancel-btn').style.display = "block";
         
-        // Open the food form accordion
         document.getElementById('accordion-food-form').classList.add('open');
         document.getElementById('accordion-food-form').scrollIntoView({ behavior: 'smooth' });
     }
@@ -413,6 +424,7 @@
                     calories: Math.round(baseFood.calories * servings), carbs: Math.round(baseFood.carbs * servings),
                     protein: Math.round(baseFood.protein * servings), fat: Math.round(baseFood.fat * servings), fiber: Math.round(baseFood.fiber * servings)
                 });
+                checkbox.checked = false; // reset check flags
             }
         });
         saveToStorage();
@@ -526,7 +538,7 @@
 
         // Render Dynamic Checklist with Edit Buttons
         let multiContainer = document.getElementById('multi-add-container');
-        multiContainer.innerHTML = appData.customFoods.length === 0 ? '<p style="color:var(--text-muted); font-size:0.85rem; padding:10px;">No custom foods yet! Use the panels below.</p>' : '';
+        multiContainer.innerHTML = appData.customFoods.length === 0 ? '<p style="color:var(--text-muted); font-size:0.85rem; padding:10px;">No custom foods yet!</p>' : '';
         
         appData.customFoods.forEach((f, i) => {
             let labelText = f.isRecipe ? "recipe" : `${f.baseServing}${f.unit}`;
@@ -541,7 +553,7 @@
                 </div>`;
         });
 
-        // Recipe ingredient options logic
+        // Recipe ingredient choices setup
         let recipeIngDiv = document.getElementById('recipe-ingredients-list');
         recipeIngDiv.innerHTML = '';
         appData.customFoods.forEach((f, i) => {
@@ -559,7 +571,7 @@
                 </div>`;
         });
 
-        // Set static configuration profiles fields mapping values
+        // Set static control configuration fields mappings
         ['goal-cal','goal-carb','goal-protein','goal-fat','goal-fiber','prof-age','prof-height','prof-weight','prof-gender','prof-goal'].forEach(id=>{
             let key = id.split('-')[1];
             document.getElementById(id).value = id.startsWith('goal') ? appData.goals[key] : appData.profile[key];
