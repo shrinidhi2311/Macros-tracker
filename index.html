@@ -2,9 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Macros Tracker</title>
-    <!-- ChartJS for rendering charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -19,25 +18,35 @@
             --border: #2f2b43;
             --radius-main: 20px;
         }
+        
+        * { box-sizing: border-box; }
+
         body {
             font-family: "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-dark);
             color: var(--text-main);
             margin: 0;
+            padding: 0;
+            padding-bottom: 80px; /* Space for the bottom navbar */
+        }
+        
+        .container { 
+            max-width: 500px; 
+            margin: 0 auto; 
             padding: 15px;
         }
-        .container { max-width: 500px; margin: 0 auto; }
+        
         h1, h2, h3, h4 { margin: 0; color: var(--text-main); font-weight: 800; }
         
-        .header { text-align: center; margin-bottom: 20px; padding-top: 10px; }
-        .header h1 { font-size: 2rem; background: linear-gradient(45deg, var(--accent-green), var(--accent-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .header { text-align: center; margin-bottom: 15px; padding-top: 10px; }
+        .header h1 { font-size: 1.8rem; background: linear-gradient(45deg, var(--accent-green), var(--accent-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         
         .date-scroller {
             display: flex; justify-content: space-between; align-items: center;
-            background: var(--card-bg); border-radius: 30px; padding: 6px 18px; margin: 15px 0;
+            background: var(--card-bg); border-radius: 30px; padding: 6px 18px; margin: 10px 0;
             border: 2px solid var(--border);
         }
-        .date-btn { background: none; border: none; color: var(--accent-green); font-size: 1.4rem; cursor: pointer; width: auto; transition: transform 0.1s ease; }
+        .date-btn { background: none; border: none; color: var(--accent-green); font-size: 1.4rem; cursor: pointer; transition: transform 0.1s ease; }
         .date-btn:active { transform: scale(1.3); }
         
         .card {
@@ -45,29 +54,45 @@
             margin-bottom: 15px; border: 2px solid var(--border);
             box-shadow: 0 8px 0px var(--bg-dark);
         }
+
+        /* Bottom Navigation Bar */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            height: 65px; background: #1a1824;
+            border-top: 2px solid var(--border);
+            display: flex; justify-content: space-around; align-items: center;
+            z-index: 1000; box-shadow: 0 -4px 10px rgba(0,0,0,0.3);
+        }
+        .nav-item {
+            background: none; border: none; color: var(--text-muted);
+            display: flex; flex-direction: column; align-items: center;
+            font-size: 0.75rem; font-weight: bold; cursor: pointer; width: 20%; padding: 5px 0;
+        }
+        .nav-item span:first-child { font-size: 1.3rem; margin-bottom: 2px; }
+        .nav-item.active { color: var(--accent-green); }
+        .nav-item.active span:first-child { transform: scale(1.1); }
+
+        /* App Views Panels */
+        .app-view { display: none; }
+        .app-view.active { display: block; }
         
-        /* Stats Dashboard */
-        .calorie-hero { text-align: center; margin: 10px 0 20px 0; }
+        /* Stats Dashboard Home */
+        .calorie-hero { text-align: center; margin: 5px 0 15px 0; }
         .calorie-big { font-size: 3.5rem; font-weight: 900; color: var(--accent-green); text-shadow: 0 0 10px rgba(56, 239, 125, 0.2); }
         .calorie-sub { font-size: 0.9rem; color: var(--text-muted); font-weight: bold; }
-        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; text-align: center; }
-        .macro-box { background: #1a1824; padding: 12px 5px; border-radius: 14px; font-size: 0.75rem; color: var(--text-muted); font-weight: bold; border: 1px solid var(--border); }
-        .macro-box span { display: block; font-size: 1rem; font-weight: 800; color: var(--text-main); margin-top: 5px; }
+        
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; text-align: center; }
+        .macro-box { background: #1a1824; padding: 10px 4px; border-radius: 14px; font-size: 0.7rem; color: var(--text-muted); font-weight: bold; border: 1px solid var(--border); }
+        .macro-box span { display: block; font-size: 0.9rem; font-weight: 800; color: var(--text-main); margin-top: 5px; }
         .fiber-highlight { border: 1.5px solid var(--accent-purple); box-shadow: 0 0 8px rgba(224, 170, 255, 0.15); }
 
-        /* Dropdowns / Accordions */
-        .accordion {
-            background: var(--card-bg); border: 2px solid var(--border);
-            border-radius: var(--radius-main); margin-bottom: 12px; overflow: hidden;
-        }
-        .accordion-header {
-            padding: 16px; font-weight: 800; display: flex; justify-content: space-between;
-            align-items: center; cursor: pointer; user-select: none; background: #1b1926;
-        }
-        .accordion-content { padding: 18px; display: none; background: var(--card-bg); }
-        .accordion.open .accordion-content { display: block; }
-        .accordion-header::after { content: '✨ ▼'; font-size: 0.75rem; color: var(--accent-purple); }
-        .accordion.open .accordion-header::after { content: '✨ ▲'; }
+        .quick-stat-row { display: flex; gap: 10px; margin-top: 15px; }
+        .quick-stat-box { flex: 1; background: #1a1824; border: 1px solid var(--border); border-radius: 14px; padding: 12px; text-align: center; }
+
+        /* Smart Search Input Elements */
+        .search-container { position: relative; margin-bottom: 8px; }
+        .search-input { padding-left: 35px !important; }
+        .search-icon { position: absolute; left: 12px; top: 12px; color: var(--text-muted); font-size: 0.9rem; pointer-events: none; }
 
         /* Form styling */
         label { display: block; margin: 10px 0 5px; font-size: 0.85rem; color: var(--text-muted); font-weight: bold; }
@@ -94,7 +119,7 @@
             padding: 12px 0; border-bottom: 1px solid var(--border);
         }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .chart-container { position: relative; margin-top: 15px; height: 180px; }
+        .chart-container { position: relative; margin-top: 10px; height: 180px; }
         
         .recipe-select-box { max-height: 150px; overflow-y: auto; background: #1a1824; padding: 10px; border-radius: 12px; border: 2px solid var(--border); margin-bottom: 10px; }
         .recipe-select-item { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; font-size: 0.9rem; }
@@ -106,11 +131,6 @@
     <div class="header">
         <h1>✨ Macros Tracker ✨</h1>
         
-        <!-- Emergency Reset Helper Tool Button -->
-        <button onclick="localStorage.clear(); location.reload();" style="background: var(--accent-pink); color: white; padding: 6px; font-size: 0.75rem; border-radius: 10px; margin-bottom: 10px; font-weight: bold; width: auto; display: inline-block;">
-            🔄 Force Update Vegetarian Defaults
-        </button>
-
         <div class="date-scroller">
             <button class="date-btn" onclick="changeDate(-1)">◀</button>
             <h3 id="display-date">Today</h3>
@@ -118,63 +138,78 @@
         </div>
     </div>
 
-    <!-- MAIN DASHBOARD HERO -->
-    <div class="card">
-        <div class="calorie-hero">
-            <div class="calorie-big" id="cal-remaining">0</div>
-            <div class="calorie-sub" id="cal-breakdown">Goal: 0 | Eaten: 0 | Burned: 0</div>
+    <div id="view-home" class="app-view active">
+        <div class="card">
+            <div class="calorie-hero">
+                <div class="calorie-big" id="cal-remaining">0</div>
+                <div class="calorie-sub" id="cal-breakdown">Goal: 0 | Eaten: 0 | Burned: 0</div>
+            </div>
+            <div class="grid-4">
+                <div class="macro-box">🥑 Carbs<span id="carb-status">0/0g</span></div>
+                <div class="macro-box">🧀 Prot<span id="protein-status">0/0g</span></div>
+                <div class="macro-box">🧈 Fat<span id="fat-status">0/0g</span></div>
+                <div class="macro-box fiber-highlight">🦄 Fiber<span id="fiber-status">0/0g</span></div>
+            </div>
+            
+            <div class="quick-stat-row">
+                <div class="quick-stat-box" style="border-color: var(--accent-blue);">
+                    <div style="font-size:0.75rem; color:var(--text-muted); font-weight:bold;">💧 Water</div>
+                    <div style="font-size:1.1rem; font-weight:800; color:var(--accent-blue); margin-top:4px;"><span id="home-water-display">0</span> ml</div>
+                </div>
+                <div class="quick-stat-box" style="border-color: var(--accent-purple);">
+                    <div style="font-size:0.75rem; color:var(--text-muted); font-weight:bold;">🚶 Walking Logs</div>
+                    <div style="font-size:1.1rem; font-weight:800; color:var(--accent-purple); margin-top:4px;"><span id="home-exercise-display">0</span> cal</div>
+                </div>
+            </div>
         </div>
-        <div class="grid-4">
-            <div class="macro-box">🥑 Carbs<span id="carb-status">0/0g</span></div>
-            <div class="macro-box">🧀 Prot<span id="protein-status">0/0g</span></div>
-            <div class="macro-box">🧈 Fat<span id="fat-status">0/0g</span></div>
-            <div class="macro-box fiber-highlight">🦄 Fiber<span id="fiber-status">0/0g</span></div>
+
+        <div class="card">
+            <h4 style="margin-bottom:10px;">Eaten List Summary:</h4>
+            <div id="today-food-list"></div>
         </div>
     </div>
 
-    <!-- CLEAN DROPDOWN LOGGING WORKSPACE -->
-    <div class="card">
-        <h3>🍽️ Log Your Meals</h3>
-        <button class="action-link" onclick="copyYesterdayLog()">📋 Copy Yesterday's Food Log</button>
-        
-        <label>Choose Food Item or Saved Meal Package</label>
-        <select id="main-food-selector" onchange="calculateLiveWeight()"></select>
-        
-        <div class="grid-2">
-            <div>
-                <label>Multiplier / Servings</label>
-                <input type="number" id="food-servings" value="1" step="0.1" oninput="calculateLiveWeight()">
+    <div id="view-log" class="app-view">
+        <div class="card">
+            <h3>🍽️ Food Logging Room</h3>
+            <button class="action-link" onclick="copyYesterdayLog()">📋 Copy Yesterday's Food Log</button>
+            
+            <label>Smart Search Database Items</label>
+            <div class="search-container">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="food-search-bar" class="search-input" placeholder="Type food name..." oninput="filterFoodDropdown()">
             </div>
-            <div>
-                <label>Calculated Amount</label>
-                <input type="text" id="live-weight-display" value="0gm" disabled style="opacity: 0.7; text-align: center; font-weight: bold; color: var(--accent-blue);">
-            </div>
-        </div>
-        
-        <button onclick="logSingleFood()">Log to Diary ✨</button>
-        <button class="edit-btn" onclick="triggerEditFromSelection()">✏️ Edit Selected Item Database Definitions</button>
-        
-        <h4 style="margin-top:25px; margin-bottom:5px;">Eaten List:</h4>
-        <div id="today-food-list"></div>
-    </div>
 
-    <!-- ACCORDION PANEL WATER -->
-    <div class="accordion">
-        <div class="accordion-header" onclick="toggleAccordion(this)">💧 Water Log</div>
-        <div class="accordion-content">
-            <div style="font-size: 1.5rem; margin-bottom:12px; text-align: center; font-weight:800; color:var(--accent-blue);"><span id="water-display">0</span> ml</div>
+            <label>Choose Matching Item or Package</label>
+            <select id="main-food-selector" onchange="calculateLiveWeight()"></select>
+            
+            <div class="grid-2">
+                <div>
+                    <label>Multiplier / Servings</label>
+                    <input type="number" id="food-servings" value="1" step="0.1" oninput="calculateLiveWeight()">
+                </div>
+                <div>
+                    <label>Calculated Total</label>
+                    <input type="text" id="live-weight-display" value="0gm" disabled style="opacity: 0.7; text-align: center; font-weight: bold; color: var(--accent-blue);">
+                </div>
+            </div>
+            
+            <button onclick="logSingleFood()">Log to Diary ✨</button>
+            <button class="edit-btn" onclick="triggerEditFromSelection()">✏️ Quick-Edit Selected Item Rules</button>
+        </div>
+
+        <div class="card">
+            <h3>💧 Water Tracker Metric</h3>
+            <div style="font-size: 1.5rem; margin:10px 0; text-align: center; font-weight:800; color:var(--accent-blue);"><span id="water-display">0</span> ml</div>
             <div class="grid-2">
                 <button onclick="addWater(250)" style="background:var(--card-bg); border:2px solid var(--border); color:white;">+250ml 🥛</button>
                 <button onclick="addWater(500)" style="background: var(--accent-blue); color:#16151d;">+500ml 💧</button>
             </div>
         </div>
-    </div>
 
-    <!-- ACCORDION PANEL EXERCISE WALKING -->
-    <div class="accordion">
-        <div class="accordion-header" onclick="toggleAccordion(this)">🚶 Walking Tracks</div>
-        <div class="accordion-content">
-            <p style="margin-top:0; font-size:0.85rem; color:var(--text-muted);">Walking updates remaining limits automatically (4.5 cal/min or 65 cal/km).</p>
+        <div class="card">
+            <h3>🚶 Exercise Tracking Minutes</h3>
+            <p style="margin-top:4px; margin-bottom:12px; font-size:0.8rem; color:var(--text-muted);">Walking updates calculations dynamically (4.5 cal/min or 65 cal/km).</p>
             <div class="grid-2">
                 <div>
                     <label>⏱️ Minutes</label>
@@ -187,96 +222,135 @@
             </div>
             <button onclick="logExercise()" style="background:var(--accent-purple); color:#16151d;">Log My Walk 🍃</button>
         </div>
-    </div>
 
-    <!-- ACCORDION PANEL CUSTOM MEAL BUILDER -->
-    <div class="accordion">
-        <div class="accordion-header" onclick="toggleAccordion(this)">🍳 Custom Recipe Builder</div>
-        <div class="accordion-content">
-            <input type="text" id="recipe-name" placeholder="Meal Package Title (e.g. Smoothie)">
-            <label>Check Ingredients to Group:</label>
-            <div class="recipe-select-box" id="recipe-ingredients-list"></div>
-            <button onclick="createCustomRecipe()" style="background: var(--accent-blue); color:#16151d;">Save Grouped Meal 🍱</button>
-        </div>
-    </div>
-
-    <!-- ACCORDION PANEL WEIGHT TRACKER -->
-    <div class="accordion">
-        <div class="accordion-header" onclick="toggleAccordion(this)">⚖️ Daily Weight Track</div>
-        <div class="accordion-content">
-            <label>Enter Weight Metrics (kg)</label>
+        <div class="card">
+            <h3>⚖️ Daily Weight Check-In</h3>
+            <label>Enter Scale Metrics (kg)</label>
             <input type="number" id="weight-input" step="0.1" placeholder="e.g. 72.5">
-            <button onclick="saveWeight()">Save Weight 🍰</button>
+            <button onclick="saveWeight()">Save Weight Metrics 🍰</button>
         </div>
     </div>
 
-    <!-- ACCORDION PANEL MANAGE & CREATE FOODS -->
-    <div class="accordion" id="accordion-food-form">
-        <div class="accordion-header" id="food-form-title">➕ Create Custom Food</div>
-        <div class="accordion-content">
-            <input type="hidden" id="edit-food-index" value="-1">
-            <input type="text" id="nf-name" placeholder="Food item name (e.g. Curd)">
-            <div class="grid-2">
-                <input type="number" id="nf-serving-size" placeholder="Serving weight (50)">
-                <select id="nf-unit"><option value="gm">gm</option><option value="ml">ml</option></select>
+    <div id="view-custom" class="app-view">
+        <div class="card" id="accordion-food-form">
+            <h3 id="food-form-title">➕ Create Custom Food</h3>
+            <div style="margin-top: 10px;">
+                <input type="hidden" id="edit-food-index" value="-1">
+                <label>Item Description Name</label>
+                <input type="text" id="nf-name" placeholder="Food item name (e.g. Curd)">
+                <div class="grid-2">
+                    <div>
+                        <label>Serving Metric Size</label>
+                        <input type="number" id="nf-serving-size" placeholder="Serving weight (50)">
+                    </div>
+                    <div>
+                        <label>Fluid/Mass Unit</label>
+                        <select id="nf-unit"><option value="gm">gm</option><option value="ml">ml</option></select>
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div><label>Calories</label><input type="number" id="nf-cal" placeholder="Calories"></div>
+                    <div><label>Carbs (g)</label><input type="number" id="nf-carb" placeholder="Carbs"></div>
+                    <div><label>Protein (g)</label><input type="number" id="nf-protein" placeholder="Protein"></div>
+                    <div><label>Fat (g)</label><input type="number" id="nf-fat" placeholder="Fat"></div>
+                </div>
+                <label>Fiber Count (g)</label>
+                <input type="number" id="nf-fiber" placeholder="Fiber (g)">
+                <button onclick="createOrUpdateFood()" id="food-save-btn">Save to Personal Base ✨</button>
+                <button onclick="cancelFoodEdit()" id="food-cancel-btn" class="secondary" style="display:none; margin-top:5px;">Cancel Edit</button>
             </div>
-            <div class="grid-2">
-                <input type="number" id="nf-cal" placeholder="Calories">
-                <input type="number" id="nf-carb" placeholder="Carbs">
-                <input type="number" id="nf-protein" placeholder="Protein">
-                <input type="number" id="nf-fat" placeholder="Fat">
+        </div>
+
+        <div class="card">
+            <h3>🍳 Group Custom Recipe Bundle</h3>
+            <div style="margin-top:10px;">
+                <input type="text" id="recipe-name" placeholder="Meal Package Title (e.g. Smoothie)">
+                <label>Check Ingredients to Combine into 1-Serving Package:</label>
+                <div class="recipe-select-box" id="recipe-ingredients-list"></div>
+                <button onclick="createCustomRecipe()" style="background: var(--accent-blue); color:#16151d;">Save Grouped Meal 🍱</button>
             </div>
-            <input type="number" id="nf-fiber" placeholder="Fiber (g)">
-            <button onclick="createOrUpdateFood()" id="food-save-btn">Save to Personal Base ✨</button>
-            <button onclick="cancelFoodEdit()" id="food-cancel-btn" class="secondary" style="display:none; margin-top:5px;">Cancel Edit</button>
         </div>
     </div>
 
-    <!-- ACCORDION PANEL PROFILE SPECIFICS -->
-    <div class="accordion">
-        <div class="accordion-header" onclick="toggleAccordion(this)">⚙️ Target Parameters & Profile</div>
-        <div class="accordion-content">
-            <div style="background:#1a1824; padding:12px; border-radius:14px; border:2px solid var(--accent-blue); margin-bottom:15px;">
-                <h4 style="color:var(--accent-blue); margin-bottom:5px;">🧠 MacroFactor Metabolism Review</h4>
-                <p style="margin:0 0 10px 0; font-size:0.8rem; color:var(--text-muted);">Calculates exact energy outputs dynamically based on weight shifts.</p>
-                <button onclick="recalibrateSmartTargets()" style="background:var(--accent-blue); color:#16151d; font-size:0.85rem; padding:8px;">Recalibrate Targets Now</button>
+    <div id="view-analytics" class="app-view">
+        <div class="card">
+            <h3>📉 Daily Weight Shifts</h3>
+            <div class="chart-container"><canvas id="weightChart"></canvas></div>
+        </div>
+        <div class="card">
+            <h3>📊 Protein & Fiber Structural Intake</h3>
+            <div class="chart-container"><canvas id="macroChart"></canvas></div>
+        </div>
+    </div>
+
+    <div id="view-settings" class="app-view">
+        <div class="card">
+            <h3>⚙️ Target Parameters & Profile</h3>
+            <div style="background:#1a1824; padding:12px; border-radius:14px; border:2px solid var(--accent-blue); margin: 15px 0;">
+                <h4 style="color:var(--accent-blue); margin-bottom:5px;">🧠 MacroFactor Metabolism Balance</h4>
+                <p style="margin:0 0 10px 0; font-size:0.8rem; color:var(--text-muted);">Calculates exact energy outputs dynamically based on weight logs shift speeds over a weekly scale cycle.</p>
+                <button onclick="recalibrateSmartTargets()" style="background:var(--accent-blue); color:#16151d; font-size:0.85rem; padding:8px;">Recalibrate Dynamic Metrics Now</button>
                 <div id="smart-recalc-output" style="font-size:0.8rem; margin-top:8px; font-style:italic; color:var(--accent-green);"></div>
             </div>
+            
             <div class="grid-2">
-                <input type="number" id="prof-age" placeholder="Age">
-                <select id="prof-gender"><option value="female">Female</option><option value="male">Male</option></select>
-                <input type="number" id="prof-height" placeholder="Height (cm)">
-                <input type="number" id="prof-weight" placeholder="Base Weight (kg)">
+                <div><label>Age</label><input type="number" id="prof-age" placeholder="Age"></div>
+                <div><label>Biological Gender</label><select id="prof-gender"><option value="female">Female</option><option value="male">Male</option></select></div>
+                <div><label>Height (cm)</label><input type="number" id="prof-height" placeholder="Height (cm)"></div>
+                <div><label>Base Weight (kg)</label><input type="number" id="prof-weight" placeholder="Base Weight (kg)"></div>
             </div>
+            
+            <label>Weekly Fitness Objectives</label>
             <select id="prof-goal">
                 <option value="-500">Lose Weight (-500 cal)</option>
                 <option value="0">Maintain Weight</option>
                 <option value="500">Gain Muscle (+500 cal)</option>
             </select>
-            <button onclick="calculateBMRGoals()">Auto Split Macros</button>
-            <hr style="border:0; border-top:2px solid var(--border); margin:15px 0;">
+            <button onclick="calculateBMRGoals()">Auto Split Macro Rules</button>
+            
+            <hr style="border:0; border-top:2px solid var(--border); margin:20px 0;">
+            
             <div class="grid-2">
                 <div><label>Calorie Goal</label><input type="number" id="goal-cal"></div>
                 <div><label>Carb Goal</label><input type="number" id="goal-carb"></div>
                 <div><label>Protein Goal</label><input type="number" id="goal-protein"></div>
                 <div><label>Fat Goal</label><input type="number" id="goal-fat"></div>
             </div>
-            <label style="color:var(--accent-purple)">Custom Fiber Goal</label>
+            <label style="color:var(--accent-purple)">Custom Fiber Target Goal</label>
             <input type="number" id="goal-fiber">
-            <button class="secondary" onclick="saveManualGoals()">Manual Save Targets</button>
+            <button class="secondary" onclick="saveManualGoals()">Manual Save Settings Targets</button>
+        </div>
+
+        <div class="card" style="text-align: center;">
+            <button onclick="if(confirm('Reset Database to vegetarian presets? Changes will be wiped.')){localStorage.clear(); location.reload();}" style="background: var(--accent-pink); color: white; width: auto; display: inline-block; padding: 10px 20px;">
+                🔄 Reset App Defaults
+            </button>
         </div>
     </div>
-
-    <!-- GRAPH VIEW CARDS -->
-    <div class="card">
-        <h3>📉 Weight Tracker</h3>
-        <div class="chart-container"><canvas id="weightChart"></canvas></div>
-    </div>
-    <div class="card">
-        <h3>📊 Protein & Fiber Progress</h3>
-        <div class="chart-container"><canvas id="macroChart"></canvas></div>
-    </div>
 </div>
+
+<nav class="bottom-nav">
+    <button class="nav-item active" onclick="switchTab('home', this)">
+        <span>🏠</span>
+        <span>Home</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('log', this)">
+        <span>📝</span>
+        <span>Log</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('custom', this)">
+        <span>🍳</span>
+        <span>Custom</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('analytics', this)">
+        <span>📈</span>
+        <span>Charts</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('settings', this)">
+        <span>⚙️</span>
+        <span>Settings</span>
+    </button>
+</nav>
 
 <script>
     let currentDateIndex = 0; 
@@ -310,6 +384,42 @@
     let weightChartInstance = null;
     let macroChartInstance = null;
 
+    // View Routing Management
+    function switchTab(viewId, buttonEl) {
+        document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+        
+        document.getElementById(`view-${viewId}`).classList.add('active');
+        buttonEl.classList.add('active');
+        
+        // Resize handle charts when shifting into viewport
+        if(viewId === 'analytics') {
+            setTimeout(renderCharts, 50);
+        }
+    }
+
+    // Smart Search Matching Engine Filter Array System Logic
+    function filterFoodDropdown() {
+        const searchVal = document.getElementById('food-search-bar').value.toLowerCase();
+        const dropdown = document.getElementById('main-food-selector');
+        const currentSelection = dropdown.value;
+        
+        dropdown.innerHTML = '<option value="">-- Choose Food or Meal Package --</option>';
+        
+        appData.customFoods.forEach((f, i) => {
+            if (f.name.toLowerCase().includes(searchVal)) {
+                let labelText = f.isRecipe ? "" : ` (${f.baseServing}${f.unit})`;
+                dropdown.innerHTML += `<option value="${i}">${f.name}${labelText}</option>`;
+            }
+        });
+        
+        if (currentSelection && [...dropdown.options].some(o => o.value === currentSelection)) {
+            dropdown.value = currentSelection;
+        } else {
+            calculateLiveWeight();
+        }
+    }
+
     function initCurrentDay() {
         let dayStr = getTargetDateString();
         if (!appData.dailyLogs[dayStr]) {
@@ -320,10 +430,6 @@
     function saveToStorage() {
         localStorage.setItem('macrosTrackerData', JSON.stringify(appData));
         updateUI();
-    }
-
-    function toggleAccordion(element) {
-        element.parentElement.classList.toggle('open');
     }
 
     function changeDate(direction) {
@@ -363,14 +469,15 @@
             protein: Math.round(baseFood.protein * servings), fat: Math.round(baseFood.fat * servings), fiber: Math.round(baseFood.fiber * servings)
         });
         
-        // Reset servings input back to standard baseline default
         document.getElementById('food-servings').value = "1";
+        document.getElementById('food-search-bar').value = "";
+        filterFoodDropdown();
         saveToStorage();
     }
 
     function triggerEditFromSelection() {
         const idx = document.getElementById('main-food-selector').value;
-        if (idx === "") return alert("Select a custom item from the dropdown list to edit first!");
+        if (idx === "") return alert("Select an item from the dropdown list to edit first!");
         startFoodEdit(parseInt(idx));
     }
 
@@ -416,7 +523,7 @@
         document.getElementById('food-save-btn').innerText = "Update Food Entry ✨";
         document.getElementById('food-cancel-btn').style.display = "block";
         
-        document.getElementById('accordion-food-form').classList.add('open');
+        switchTab('custom', document.querySelector('.nav-item[onclick*="custom"]'));
         document.getElementById('accordion-food-form').scrollIntoView({ behavior: 'smooth' });
     }
 
@@ -501,7 +608,13 @@
 
     function saveWeight() {
         const w = parseFloat(document.getElementById('weight-input').value);
-        if(w) { appData.dailyLogs[getTargetDateString()].weight = w; appData.profile.weight = w; saveToStorage(); }
+        if(w) { 
+            appData.dailyLogs[getTargetDateString()].weight = w; 
+            appData.profile.weight = w; 
+            document.getElementById('weight-input').value = '';
+            saveToStorage(); 
+            alert(`Weight logged: ${w}kg`);
+        }
     }
 
     function calculateBMRGoals() {
@@ -524,6 +637,7 @@
         appData.goals.fat = parseInt(document.getElementById('goal-fat').value);
         appData.goals.fiber = parseInt(document.getElementById('goal-fiber').value);
         saveToStorage();
+        alert("Manual targets updated!");
     }
 
     function renderCharts() {
@@ -566,22 +680,15 @@
         document.getElementById('protein-status').innerText = `${totals.protein}/${appData.goals.protein}g`;
         document.getElementById('fat-status').innerText = `${totals.fat}/${appData.goals.fat}g`;
         document.getElementById('fiber-status').innerText = `${totals.fiber}/${appData.goals.fiber}g`;
+        
         document.getElementById('water-display').innerText = log.water;
+        document.getElementById('home-water-display').innerText = log.water;
+        document.getElementById('home-exercise-display').innerText = log.exerciseCal;
 
-        // Populate Main Dropdown Selector dynamically
-        let dropdown = document.getElementById('main-food-selector');
-        let currentSelection = dropdown.value; // Save current index to maintain place during DOM writes
-        
-        dropdown.innerHTML = '<option value="">-- Choose Food or Meal Package --</option>';
-        appData.customFoods.forEach((f, i) => {
-            let labelText = f.isRecipe ? "" : ` (${f.baseServing}${f.unit})`;
-            dropdown.innerHTML += `<option value="${i}">${f.name}${labelText}</option>`;
-        });
-        
-        if (currentSelection && currentSelection < appData.customFoods.length) {
-            dropdown.value = currentSelection;
+        // Run matching list filter logic
+        if(!document.getElementById('food-search-bar').value) {
+            filterFoodDropdown();
         }
-        calculateLiveWeight();
 
         // Recipe selection options logic loop
         let recipeIngDiv = document.getElementById('recipe-ingredients-list');
@@ -601,13 +708,11 @@
                 </div>`;
         });
 
-        // Sync data options attributes fields back to configurations objects
+        // Sync data structural config configurations inputs
         ['goal-cal','goal-carb','goal-protein','goal-fat','goal-fiber','prof-age','prof-height','prof-weight','prof-gender','prof-goal'].forEach(id=>{
             let key = id.split('-')[1];
             document.getElementById(id).value = id.startsWith('goal') ? appData.goals[key] : appData.profile[key];
         });
-
-        renderCharts();
     }
 
     initCurrentDay();
